@@ -53,6 +53,8 @@ Arguments:
             and also see it entering the uppper left box.
             Take the data that would be written out to the left side and
             inject it into the data stream arriving from the left side.
+            */
+/*
 
 
     Interactive Commands
@@ -188,10 +190,10 @@ void update_win(int i) {
 
 /* add string to a window */
 
-void wAddstr(int z, char c[255]);
-
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void wAddstr(int z, char c[255]);
 
 static struct option long_options[] =
         {
@@ -239,7 +241,59 @@ char fileRead(const char *filename, char *output[255]) {
 
 int main(int argc, char *argv[]) {
 
-    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    static struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+
+    newt.c_lflag &= ~(ICANON | ECHO);
+    //tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    cfmakeraw(&newt);
+
+
+    /* Use input arguments from loop to set values*/
+    int i;
+    int n;
+    int len;
+    int ch;
+    int indexptr; /*generic ponter for getopt_long_only API*/
+    char *line = NULL; /* read line by line */
+    icmd flags;
+
+    flags.noleft = 0;
+    flags.noright = 0;
+    flags.rraddr = NULL; /* hold addresses of left and right connect IP adresses */
+    flags.llport = PROTOPORT; /*left protocol port number */
+    flags.rrport = PROTOPORT;  /*right protocol port number */
+    int parentrd = -1; /*right and left socket descriptors*/
+    int parentld = -1;  /*right and left socket descriptors*/
+    int openrd = 0; /* indicates open (1) right connection, otherwise (0)*/
+    int openld = 0;    /* indicates open(1) left connection, otherwise (0)*/
+    int maxfd;
+    int desc = -1;
+
+    struct addrinfo hints, *infoptr; /*used for getting connecting right piggy if give DNS*/
+    struct addrinfo *p;
+    char hostinfo[256];
+
+    char buf[MAXSIZE]; /* buffer for string the server sends */
+    char stdinBuf[MAXSIZE]; /* buffer for standard input insert */
+
+    fd_set readset, masterset;
+    int pigopt;
+    int descrready;
+    int commandLength;
+    char command[10];
+    char commandArray[1000];
+    char charMode;
+    char *output[255];
+
+    flags.dsplr = 1; /* display left to right data, default if no display option provided */
+    flags.dsprl = 0; /* display right  to left data */
+    flags.loopr = 0; /* take data that comes from the left and send it back to the left */
+    flags.loopl = 0; /* take data that comes in from the right and send back to the right */
+
+
+
 
     /* setup ncurses for multiple windows */
 
@@ -291,10 +345,6 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-
-
-
-
     // create the 7 windows and the seven subwindows
     for (x = 0; x < NUMWINS; x++) {
         w[x] = newwin(WPOS[x][0], WPOS[x][1], WPOS[x][2], WPOS[x][3]);
@@ -328,13 +378,13 @@ int main(int argc, char *argv[]) {
     wmove(sw[3], 4, 0);
     waddstr(sw[3], "Data arriving from the right");
     wmove(sw[4], 0, 0);
-    waddstr(sw[4], "Commands");
+    waddstr(sw[4], "Commands: ");
 
     wmove(sw[5], 0, 0);
-    waddstr(sw[5], "Input");
+    waddstr(sw[5], "Input(s): ");
 
     wmove(sw[6], 0, 0);
-    waddstr(sw[6], "Errors");
+    waddstr(sw[6], "Errors: ");
 
 
 
@@ -345,86 +395,11 @@ int main(int argc, char *argv[]) {
     wgetstr(sw[4], response); // Pause so we can see the screen
     wmove(sw[4], 0, 0);
     wclrtoeol(sw[4]); // clears current line without clobbering borders
-    wprintw(sw[4], "I'm sleeping between each line");
+    //wprintw(sw[4], "I'm sleeping between each line");
     update_win(4);
-    for (x = 0; x < 100; x++) {
-
-        // main system loop
-
-        wprintw(sw[0], "This is line \t %d of \t 100\n", x);
-        usleep(60000); // allows delay in printing each line
-        update_win(0);
-    }
 
 
-
-    wmove(sw[4], 0, 0);
-    wclrtoeol(sw[4]);
-    wprintw(sw[4], "All finished. Press Enter to terminate the program.");
-    update_win(4);
-    wgetstr(sw[4], response);
-/* End screen updating */
-    endwin();
-    // Bye
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#ifdef WIN32
-    WSADATA wsaData;
-WSAStartup(0x0101, &wsaData);
-#endif
-
-    static struct termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    cfmakeraw(&newt);
-
-
-    /* Use input arguments from loop to set values*/
-    int i;
-    int n;
-    int len;
-    int ch;
-    int indexptr; /*generic ponter for getopt_long_only API*/
-    char *line = NULL; /* read line by line */
-    icmd flags;
-
-    flags.noleft = 0;
-    flags.noright = 0;
-    flags.rraddr = NULL; /* hold addresses of left and right connect IP adresses */
-    flags.llport = PROTOPORT; /*left protocol port number */
-    flags.rrport = PROTOPORT;  /*right protocol port number */
-    int parentrd = -1; /*right and left socket descriptors*/
-    int parentld = -1;  /*right and left socket descriptors*/
-    int openrd = 0; /* indicates open (1) right connection, otherwise (0)*/
-    int openld = 0;    /* indicates open(1) left connection, otherwise (0)*/
-    int maxfd;
-    int desc = -1;
-
-    struct addrinfo hints, *infoptr; /*used for getting connecting right piggy if give DNS*/
-    struct addrinfo *p;
-    char hostinfo[256];
-
-    char buf[MAXSIZE]; /* buffer for string the server sends */
-    char stdinBuf[MAXSIZE]; /* buffer for standard input insert */
-
-    fd_set readset, masterset;
-    int pigopt;
-    int descrready;
-    int commandLength;
-    char command[10];
-    char commandArray[1000];
-    char charMode;
-    char *output[255];
-
-    flags.dsplr = 1; /* display left to right data, default if no display option provided */
-    flags.dsprl = 0; /* display right  to left data */
-    flags.loopr = 0; /* take data that comes from the left and send it back to the left */
-    flags.loopl = 0; /* take data that comes in from the right and send back to the right */
-
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     while ((ch = getopt_long_only(argc, argv, "a::l::r::d::e::f::g::t::k:z:", long_options, &indexptr)) != -1) {
         switch (ch) {
             case 'a':
@@ -435,7 +410,9 @@ WSAStartup(0x0101, &wsaData);
                     int readLines = fileRead(filename, output);
                     // read from array and pass into flag function
                     for (int x = 0; x < readLines; ++x) {
-                        printf("%s\n", output[x]);
+                        //printf("%s\n", output[x]);
+                        waddstr(sw[4], output[x]);
+                        update_win(4);
                         // print into command window sw[4];
                         n = flagsfunction(flags, output[x], sizeof(buf), flags.position, &desc, &parentrd, right, left,
                                           lconn);
@@ -443,6 +420,9 @@ WSAStartup(0x0101, &wsaData);
                         if (n < 0) {
                             printf("invalid command\n");
                             // print into error reporting sw[6]
+                            waddstr(sw[6]," invalid command");
+                            waddstr(sw[6]," ");
+                            update_win(6);
                         }
 
                         free(output[x]);//Discard after being used
@@ -455,14 +435,19 @@ WSAStartup(0x0101, &wsaData);
                     int readLines = fileRead("scriptin.txt", output);
                     // read from array and pass into flag function
                     for (int x = 0; x < readLines; ++x) {
-                        printf("%s\n", output[x]);
+                        //printf("%s\n", output[x]);
                         // print into command window sw[4];
+                        waddstr(sw[4], output[x]);
+                        waddstr(sw[6]," ");
+                        update_win(4);
                         n = flagsfunction(flags, output[x], sizeof(buf), flags.position, &desc, &parentrd, right, left,
                                           lconn);
 
                         if (n < 0) {
                             printf("invalid command\n");
                             // print into error reporting sw[6]
+                            waddstr(sw[6]," invalid command");
+                            update_win(6);
 
                         }
 
@@ -473,47 +458,61 @@ WSAStartup(0x0101, &wsaData);
             case 'l':
                 flags.noleft = 1;
                 printf("noLeft\n");
-                // print into IO window sw[4];
+                waddstr(sw[4], "noleft ");
+                update_win(4);
                 break;
 
             case 'r':
                 flags.noright = 2;
                 flags.dsplr = 0;
                 flags.dsprl = 1;
-                printf("noRight\n");
+                //printf("noRight\n");
+                waddstr(sw[4], "noright ");
+                update_win(4);
                 break;
             case 'd':
                 flags.dsplr = 2;
-                printf("display left -> right \n");
+                //printf("display left -> right \n");
+                waddstr(sw[4], "dsplr ");
+                update_win(4);
                 break;
 
             case 'e':
                 flags.dsprl = 1;
-                printf("display right -> left \n");
+                //printf("display right -> left \n");
+                waddstr(sw[4], "dsprl ");
+                update_win(4);
                 break;
 
             case 'f':
                 flags.loopr = 1;
-                printf("loopr\n");
+                //printf("loopr\n");
+                waddstr(sw[4], "loopr ");
+                update_win(4);
                 break;
 
             case 'g':
                 flags.loopl = 1;
-                printf("loopl\n");
+                //printf("loopl\n");
+                waddstr(sw[4], "loopl ");
+                update_win(4);
                 break;
 
             case 't':
                 if (number(argv[optind]) > 0) {
                     flags.llport = atoi(argv[optind]);
                 } else {
-                    printf("left port not a number: %s\n", argv[optind]);
-                    // print into error reporting sw[6]
+                    //printf("left port not a number: %s\n", argv[optind]);
+                    waddstr(sw[6]," left port not a number");
+                    update_win(6);
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                     return -1;
                 }
                 if (flags.llport < 0 || flags.llport > 65535) {
                     // print into error reporting sw[6]
-                    printf("left port number out of range: %d\n", flags.llport);
+                    //printf("left port number out of range: %d\n", flags.llport);
+                    waddstr(sw[6]," left port number out of range");
+                    update_win(6);
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                     return -1;
                 }
@@ -523,13 +522,17 @@ WSAStartup(0x0101, &wsaData);
                 if (number(argv[optind - 1]) > 0) {
                     flags.rrport = atoi(argv[optind - 1]);
                 } else {
-                    printf("right port not a number: %s\n", argv[optind - 1]);
+                    //printf("right port not a number: %s\n", argv[optind - 1]);
                     // print into error reporting sw[6]
+                    waddstr(sw[6]," right port not a number");
+                    update_win(6);
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                     return -1;
                 }
                 if (flags.rrport < 0 || flags.rrport > 65535) {
-                    printf("right port number out of range: %d\n", flags.rrport);
+                    //printf("right port number out of range: %d\n", flags.rrport);
+                    waddstr(sw[6]," right port number out of range");
+                    update_win(6);
                     // print into error reporting sw[6]
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                     return -1;
@@ -538,7 +541,10 @@ WSAStartup(0x0101, &wsaData);
                 break;
 
             case 'z':
-                printf("right addrs parse...\n");
+                //printf("right addrs parse...\n");
+                waddstr(sw[5]," rraddr error");
+                update_win(5);
+
                 flags.rraddr = argv[optind - 1];
 
                 hints.ai_family = AF_INET;
@@ -546,8 +552,10 @@ WSAStartup(0x0101, &wsaData);
                 n = getaddrinfo(flags.rraddr, NULL, NULL, &infoptr);
 
                 if (n != 0) {
-                    printf("rraddr error\n");
+                    //printf("rraddr error\n");
                     // print into error reporting sw[6]
+                    waddstr(sw[6]," rraddr error");
+                    update_win(6);
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                     return -1;
                 }
@@ -563,23 +571,36 @@ WSAStartup(0x0101, &wsaData);
             case '?':
                 fprintf(stderr, "invalid option: -%c\n", optopt);
                 // print into error reporting sw[6]
+                waddstr(sw[6]," No valid command");
+                update_win(6);
                 tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                 return -1;
         }
     }
 
-    printf("All available args parsed...\n");
+    /* end switch statement */
+
+    //printf("All available args parsed...\n");
+    waddstr(sw[5]," All available args parsed... ");
+    update_win(5);
+
+    /* after switch positioning */
+
     flags.position = flags.noleft + flags.noright;
     printf("postion: %d\n", flags.position);
     if (flags.position == 3) {
-        printf("Piggy requires at least one connection...\n");
+        //printf("Piggy requires at least one connection...\n");
+        waddstr(sw[6]," Piggy requires at least one connection... ");
+        update_win(6);
         tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
         exit(1);
     }
 
     n = flags.dsplr + flags.dsprl;
     if (n == 3) {
-        printf("dsplr and dsprl cannot both be set...\n");
+        //printf("dsplr and dsprl cannot both be set...\n");
+        waddstr(sw[6]," dsplr and dsprl cannot both be set... ");
+        update_win(6);
         tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
         exit(1);
     }
@@ -595,10 +616,12 @@ WSAStartup(0x0101, &wsaData);
         flags.dsprl = 0;
     }
 
-    /* A position < 1 implies that the currect piggy is at least*/
+    /* A position < 1 implies that the current piggy is at least*/
     /*  a middle piggy                                          */
     if ((flags.position < 1) & (flags.rraddr == NULL)) {
-        printf("Piggy right connection requires right address or DNS...\n");
+        //printf("Piggy right connection requires right address or DNS...\n");
+        waddstr(sw[5]," Piggy right connection requires right address or DNS... ");
+        update_win(5);
         tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
         exit(1);
     }
@@ -606,11 +629,17 @@ WSAStartup(0x0101, &wsaData);
     FD_ZERO(&masterset);
     FD_SET(0, &masterset);
 
+
+    /* enter second switch statement */
+
     switch (flags.position) {
 
         /* Middle piggy */
         case 0:
-            printf("Middle piggy\n");
+            //printf("Middle piggy\n");
+
+            waddstr(sw[5]," Middle Piggy ");
+            update_win(5);
 
             pigopt = 2;
             parentrd = sock_init(pigopt, 0, flags.rrport, flags.rraddr, right, host);
@@ -629,74 +658,7 @@ WSAStartup(0x0101, &wsaData);
             }
 
             //FD_SET(desc, &masterset);
-            FD_SET(parentld, &masterset);
-            FD_SET(parentrd, &masterset);
-            printf("One right descriptor added to fd_set, right descriptor\n");
-            printf("Two left descriptors added, main left listening and left accept\n");
-            break;
-
-            /* Head piggy */
-        case 1:
-            printf("Head piggy\n");
-
-            pigopt = 2;
-            parentrd = sock_init(pigopt, 0, flags.rrport, flags.rraddr, right, host);
-
-            if (parentrd < 0) {
-                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-                exit(1);
-            }
-/**********/
-            printf("%s", inet_ntoa(right.sin_addr)); // return the IP) );
-
-/**********/
-            openrd = 1;
-            printf("One right descriptor added to fd_set, right descriptor\n");
-            FD_SET(parentrd, &masterset);
-            break;
-
-            /* Tail Piggy*/
-        default:
-            printf("Tail piggy\n");
-
-            pigopt = 1;
-            parentld = sock_init(pigopt, QLEN, flags.llport, NULL, left, NULL);
-            openld = 1;
-            if (parentld < 0) {
-                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-                exit(1);
-            }
-
-            FD_SET(parentld, &masterset);
-            printf("One left descriptor added to fd_set, left descriptor \n");
-    }
-    /*end switch */
-
-
-
-    /* Since the piggy position is at least 0 and less than 3*/
-    /*  maxfd == parentld or maxfd == parentrd                   */
-    maxfd = max(parentld, parentrd);
-    printf("All required sockets okay...\n");
-    printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
-
-    while (1) {
-        memcpy(&readset, &masterset, sizeof(masterset));
-
-        /**/
-        n = select(maxfd + 1, &readset, NULL, NULL, NULL);
-        if (n < 0) {
-            printf("select error \n");
-            break;
-        }
-
-        /*Reading from standard in*/
-        /* When creating the socket descriptors, we
-        *  already ensured that parentrd >0 and
-        *  therfore don't need addition checks
-        *   durring its use.
-        */
-        if (FD_ISSET(0, &readset)) {
+            FD_SET(parentld, &masterset);if (FD_ISSET(0, &readset)) {
             ch = getchar();
 
             switch (ch) {
@@ -808,12 +770,16 @@ WSAStartup(0x0101, &wsaData);
 
                         // read from array and pass into flagfunction
                         for (int x = 0; x < readLines; ++x) {
-                            printf("%s\n", output[x]);
+                            //printf("%s\n", output[x]);
+                            waddstr(sw[5], output[x]);
+                            update_win(5);
                             n = flagsfunction(flags, output[x], sizeof(buf), flags.position, &desc, &parentrd, right,
                                               left, lconn);
 
                             if (n < 0) {
-                                printf("invalid command\n");
+                                //printf("invalid command\n");
+                                waddstr(sw[6],"invalid command ");
+                                update_win(6);
                             }
 
                             free(output[x]);//Discard after being used
@@ -821,7 +787,260 @@ WSAStartup(0x0101, &wsaData);
 
 
                         if (n < 0) {
-                            printf("invalid command\n");
+                            //printf("invalid command\n");
+                            waddstr(sw[6],"invalid command ");
+                            update_win(6);
+                        }
+                        break;
+                    } else {
+
+
+                        //printf("\n");
+                        //printf("%s\n", buf);
+                        waddstr(sw[5],buf);
+                        update_win(5);
+                        n = flagsfunction(flags, buf, sizeof(buf), flags.position, &desc, &parentrd, right, left,
+                                          lconn);
+
+                        if (n < 0) {
+                            //printf("invalid command\n");
+                            waddstr(sw[6],"invalid command ");
+                            update_win(6);
+
+                        }
+                        break;
+                    }
+            }
+        }
+        /*End stdin */
+
+            FD_SET(parentrd, &masterset);
+            //printf("One right descriptor added to fd_set, right descriptor\n");
+            //printf("Two left descriptors added, main left listening and left accept\n");
+
+            waddstr(sw[5],"One right descriptor added to fd_set, right descriptor ");
+            waddstr(sw[5],"Two left descriptors added, main left listening and left accept ");
+            update_win(5);
+            break;
+
+            /* Head piggy */
+        case 1:
+            //printf("Head piggy\n");
+            waddstr(sw[5]," Head Piggy ");
+            update_win(5);
+
+            pigopt = 2;
+            parentrd = sock_init(pigopt, 0, flags.rrport, flags.rraddr, right, host);
+
+            if (parentrd < 0) {
+                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                exit(1);
+            }
+/**********/
+            //printf("%s", inet_ntoa(right.sin_addr)); // return the IP) );
+
+/**********/
+            openrd = 1;
+            //printf("One right descriptor added to fd_set, right descriptor\n");
+            waddstr(sw[5],"One right descriptor added to fd_set, right descriptor ");
+            update_win(5);
+            FD_SET(parentrd, &masterset);
+            break;
+
+            /* Tail Piggy*/
+        default:
+            //printf("Tail piggy\n");
+            waddstr(sw[5],"Tail Piggy ");
+            update_win(5);
+
+            pigopt = 1;
+            parentld = sock_init(pigopt, QLEN, flags.llport, NULL, left, NULL);
+            openld = 1;
+            if (parentld < 0) {
+                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                exit(1);
+            }
+
+            FD_SET(parentld, &masterset);
+            //printf("One left descriptor added to fd_set, left descriptor \n");
+            waddstr(sw[5],"One left descriptor added to fd_set, left descriptor ");
+            update_win(5);
+    }
+    /*end switch */
+
+    /* Since the piggy position is at least 0 and less than 3*/
+    /*  maxfd == parentld or maxfd == parentrd                   */
+    maxfd = max(parentld, parentrd);
+    printf("All required sockets okay...\n");
+    printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+
+    while (1) {
+        memcpy(&readset, &masterset, sizeof(masterset));
+
+        /**/
+        n = select(maxfd + 1, &readset, NULL, NULL, NULL);
+        if (n < 0) {
+            //printf("select error \n");
+            waddstr(sw[6],"select error ");
+            update_win(6);
+
+            break;
+        }
+
+        /*Reading from standard in*/
+        /* When creating the socket descriptors, we
+        *  already ensured that parentrd >0 and
+        *  therfore don't need addition checks
+        *   durring its use.
+        */
+
+        if (FD_ISSET(0, &readset)) {
+            ch = getchar();
+
+            switch (ch) {
+                /*i*/
+                case 105:
+                    //printf("Enter Insert\n");
+                    waddstr(sw[5],"Enter Insert ");
+                    update_win(5);
+                    //printf("position%d", parentrd);
+                    /* for building program, send all data right*/
+
+                    //while(ch = getchar() != EOF && getchar() != '\n'){
+                    while (1) {
+                        //while((ch = getchar()) != 27){
+
+                        ch = getchar();
+
+                        if (ch == 27) {
+                            break;
+
+                        } else {
+                            buf[0] = (char) ch;
+                            putchar(ch);
+                            if (flags.position <= 1) {
+                                if (openrd) {
+                                    n = send(parentrd, buf, sizeof(buf), 0);
+                                }
+                                if (n < 0) {
+                                    //printf("send parent error");
+                                    waddstr(sw[6],"send parent error ");
+                                    update_win(6);
+
+                                    break;
+                                }
+                                if (n == 0) {
+                                    /* Here, if persr is set, we will attempt*/
+                                    /*  reestablish the connection           */
+
+                                    //printf("1: right connection closed...\n");
+                                    waddstr(sw[5],"right connection closed... ");
+                                    update_win(5);
+                                    break;
+                                }
+                                //printf("Message sent successfully...\n");
+                            } else {
+                                /* Send data to the left, this is a tail piggy */
+                                n = send(desc, buf, sizeof(buf), 0);
+
+                                if (n < 0) {
+                                    //printf("send left error \n");
+                                    waddstr(sw[6],"send left error ");
+                                    update_win(6);
+                                    break;
+                                }
+                                if (n == 0) {
+                                    //printf("left connection closed, reestablish later...\n");
+                                    waddstr(sw[5],"left connection closed, reestablish later... ");
+                                    update_win(5);
+                                    break;
+                                }
+
+                                //printf("Message sent successfully...\n");
+                            }
+                        }
+                    }
+                    printf("\n");
+
+                    break;
+                    /* q*/
+                case 113:
+                    bzero(buf, sizeof(buf));
+                    //printf("exiting\n");
+                    waddstr(sw[5],"exiting ");
+                    update_win(5);
+                    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                    return 0;
+                    /* : */
+                case 58:
+                    bzero(buf, sizeof(buf));
+                    i = 0;
+                    putchar(':');
+                    //printf("Enter command mode\n");
+                    waddstr(sw[5],"Enter command mode ");
+                    update_win(5);
+
+                    //while( (ch = getchar()) != 10){
+                    while (1) {
+                        ch = getchar();
+                        if (ch == 10) {
+                            break;
+                        } else {
+
+                            buf[i++] = ch;
+                            putchar(ch);
+                            //++i;
+                        }
+                    }
+                    //printf("left command\n");
+                    // pass buf into file read if begins with source
+
+                    char *bufCommand = buf;
+                    //printf("%s\n", bufCommand);
+                    char *checker = NULL;
+
+
+                    checker = strstr(bufCommand, "source");
+                    if (checker == bufCommand) {
+                        char tokenCommand[1000];
+                        char commandOutput[255];
+
+
+                        // run through tokenizer
+                        char delimiter[] = " ";
+                        char *word2, *end;
+                        int inputLength = strlen(buf);
+                        char *inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
+                        strncpy(inputCopy, buf, inputLength);
+                        strtok_r(inputCopy, delimiter, &end);
+                        word2 = strtok_r(NULL, delimiter, &end);
+
+                        // get commands from fileread
+                        int readLines = fileRead(word2, output);
+
+                        // read from array and pass into flagfunction
+                        for (int x = 0; x < readLines; ++x) {
+                            printf("%s\n", output[x]);
+                            waddstr(sw[4],output[x]);
+                            waddstr(sw[4]," ");
+                            update_win(4);
+                            n = flagsfunction(flags, output[x], sizeof(buf), flags.position, &desc, &parentrd, right,
+                                              left, lconn);
+
+                            if (n < 0) {
+                                //printf("invalid command\n");
+                                waddstr(sw[6],"invalid command ");
+                                update_win(6);
+                            }
+
+                            free(output[x]);//Discard after being used
+                        }
+
+
+                        if (n < 0) {
+                            //printf("invalid command\n");
+                            waddstr(sw[6],"invalid command ");
+                            update_win(6);
                         }
                         break;
                     } else {
@@ -829,11 +1048,15 @@ WSAStartup(0x0101, &wsaData);
 
                         printf("\n");
                         printf("%s\n", buf);
+                        waddstr(sw[4], buf);
+                        update_win(4);
                         n = flagsfunction(flags, buf, sizeof(buf), flags.position, &desc, &parentrd, right, left,
                                           lconn);
 
                         if (n < 0) {
-                            printf("invalid command\n");
+                            //printf("invalid command\n");
+                            waddstr(sw[6],"invalid command ");
+                            update_win(6);
                         }
                         break;
                     }
@@ -851,7 +1074,9 @@ WSAStartup(0x0101, &wsaData);
             desc = accept(parentld, (struct sockaddr *) &lconn, &len);
 
             if (desc < 0) {
-                printf("left accept error\n");
+                //printf("left accept error\n");
+                waddstr(sw[6],"left accept error ");
+                update_win(6);
                 tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                 exit(1);
             }
@@ -874,48 +1099,67 @@ WSAStartup(0x0101, &wsaData);
             n = recv(desc, buf, sizeof(buf), 0);
 
             if (n < 0) {
-                printf("recv left error \n");
+                //printf("recv left error \n");
+                waddstr(sw[6],"recv left error ");
+                update_win(6);
                 break;
             }
             if (n == 0) {
-                printf("left connection closed, reestablish later...\n");
+                //printf("left connection closed, reestablish later...\n");
+                waddstr(sw[5],"left connection closed, reestablish later... ");
+                update_win(5);
                 FD_CLR(desc, &masterset);
                 //break;
             }
             // printf("Message recv successfully...\n");
 
             if (flags.position == 2) {
+
                 printf("%c", buf[0]);
+                //waddstr(sw[6],buf[0]);
+                //update_win(6);
             }
             /* If dsprl is set we print data coming frm the right*/
             if (flags.dsplr == 1) {
                 printf("%c", buf[0]);
+                //waddstr(sw[6],buf[0]);
+                //update_win(6);
                 //fputs(buf, stdout);
             }
 
             if (flags.loopr == 1) {
                 n = send(desc, buf, sizeof(buf), 0);
                 if (n < 0) {
-                    printf("send left error\n");
+                    //printf("send left error\n");
+                    waddstr(sw[6],"send left error ");
+                    update_win(6);
                     break;
                 }
                 if (n == 0) {
-                    printf("2: right connection closed, reestablish later...\n");
+                    //printf("2: right connection closed, reestablish later...\n");
+                    waddstr(sw[5],"right connection closed, reestablish later... ");
+                    update_win(5);
                     break;
                 }
                 // printf("Message loooped left successfully...\n");
             }
             /* Check if data needs to be forwarded */
             if (flags.loopr != 1 && flags.position <= 1) {
-                printf("forwarding message...\n");
+                //printf("forwarding message...\n");
+                waddstr(sw[5],"forwarding message... ");
+                update_win(5);
                 n = send(parentrd, buf, sizeof(buf), 0);
 
                 if (n < 0) {
-                    printf("send right error \n");
+                    //printf("send right error \n");
+                    waddstr(sw[6],"send right error ");
+                    update_win(6);
                     break;
                 }
                 if (n == 0) {
-                    printf("3: right connection closed, reestablish later...\n");
+                    //printf("3: right connection closed, reestablish later...\n");
+                    waddstr(sw[5],"right connection closed, reestablish later ");
+                    update_win(5);
                     break;
                 }
             }
@@ -933,14 +1177,19 @@ WSAStartup(0x0101, &wsaData);
 
             n = recv(parentrd, buf, sizeof(buf), 0);
             if (n < 0) {
-                printf("recv right error\n");
+                //printf("recv right error\n");
+                waddstr(sw[6],"recv right error ");
+                update_win(6);
+
                 break;
             }
             if (n == 0) {
                 openrd = 0;
                 //printf("right connection closed, reestablish later...\n");
                 if (flags.persr == 1) {
-                    printf("reestablish...\n");
+                    //printf("reestablish...\n");
+                    waddstr(sw[6],"reestablish... ");
+                    update_win(6);
                 }
                 /*do something*/
             } else {
@@ -952,11 +1201,15 @@ WSAStartup(0x0101, &wsaData);
                 if (flags.loopl == 1) {
                     n = send(parentrd, buf, sizeof(buf), 0);
                     if (n < 0) {
-                        printf("send right error\n");
+                        //printf("send right error\n");
+                        waddstr(sw[6],"send right error ");
+                        update_win(6);
                         break;
                     }
                     if (n == 0) {
                         printf("left connection closed, reestablish later...\n");
+                        waddstr(sw[5],"left connection closed, reestablish later...");
+                        update_win(5);
                         break;
                     }
                 }
@@ -966,10 +1219,14 @@ WSAStartup(0x0101, &wsaData);
                     n = send(desc, buf, sizeof(buf), 0);
                     if (n < 0) {
                         printf("send left error\n");
+                        waddstr(sw[6],"send left error");
+                        update_win(6);
                         break;
                     }
                     if (n == 0) {
-                        printf("left connection closed, reestablish later...\n");
+                        //printf("left connection closed, reestablish later...\n");
+                        waddstr(sw[5],"left connection closed, reestablish later...");
+                        update_win(5);
                         break;
                     }
                 }
@@ -977,7 +1234,33 @@ WSAStartup(0x0101, &wsaData);
         }
         /* End ready parentrd*/
     }
+        /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+    // main ncurse loop
+    for (x = 0; x < 100; x++) {
+
+        // main system loop
+
+
+
+        wprintw(sw[0], "This is line \t %d of \t 100\n", x);
+        usleep(60000); // allows delay in printing each line
+        update_win(0);
+    }
+
+
+// begin shutdown of gui
+    wmove(sw[4], 0, 0);
+    wclrtoeol(sw[4]);
+    wprintw(sw[4], "All finished. Press Enter to terminate the program.");
+    update_win(4);
+    wgetstr(sw[4], response);
+/* End screen updating */
+    endwin();
+    echo();
+    // Bye
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return 0;
 }/*end main*/
