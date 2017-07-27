@@ -2,32 +2,42 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <getopt.h>
+#include <arpa/inet.h>
 #include <ctype.h>
+/*
 #include <zconf.h>
 #include <locale.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <execinfo.h>
 #include <termios.h>
-#include <unistd.h>  
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include <ifaddrs.h>
+#include <unistd.h>
+#include <getopt.h>
 
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/select.h>
+#include <ifaddrs.h>
+*/
 #ifndef unix
 #define WIN32
 #include <windows.h>
 #include <winsock.h>
 #else
+/*
 #define closesocket close
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+ */
 #include <netdb.h>
 #endif
+
+struct hostent;
+struct sockaddr_in;
+
 /*
 *Function:  
 *       number
@@ -39,8 +49,6 @@
 *Returns: 
 *       pseudo boolean if the string is all digits 1, else -1
 */
-struct hostent;
-struct sockaddr_in;
 int number(char*str){
     
         int i = 0;
@@ -63,20 +71,7 @@ int number(char*str){
 }//end number
 
 
-/*
-*Function:  
-*           sock_init
-* 
-*Description: 
-*           Creates the appropriate socket descriptor for a piggy
-* 
-*Relavent Arguments:
-*           pigopt 1 -- listen socket
-*           pigopt 2 --connect socket
-* 
-*Returns : 
-*           socket descriptor
-*/
+
 
 /*
 *Function:  
@@ -104,18 +99,18 @@ int max(int a, int b){
 
 /*
 *Function:  
-*           getip
+*           sock_init
 * 
 *Description: 
-*           compares value of two integers
+*           Creates the appropriate socket descriptor for a piggy
 * 
 *Relavent Arguments:
+*           pigopt 1 -- listen socket
+*           pigopt 2 --connect socket
 * 
 *Returns : 
-*           max of two integers
+*           socket descriptor
 */
-
-
 int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct sockaddr_in conn, struct hostent *host ){
     
     
@@ -205,10 +200,14 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
 *Returns : 
 *           -1  invalid interactive command option
 *            1  valid interactive command 
+*            2  reserved for persl
+*            3  reserved for persr
+*            4  reserved for dropl
+*            5  reserver for dropr
 */
-int flagsfunction(icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in right, struct sockaddr_in left){    
+int flagsfunction( icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right){    
         int value = -1;
-        
+        /* */
         if (strncmp(command, "outputl", len) == 0) {        
             printf("set output to left piggy\n");
             flags->output =0;        
@@ -216,6 +215,7 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
             flags->loopr = 0;            
         }
         
+        /* */
         if (strncmp(command, "outputr", len) == 0) {
             
             value = 1;        
@@ -224,6 +224,7 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
             flags->loopr = 0;
         }
         
+        /* */
         if (strncmp(command, "output", len) == 0) {
             value = 1;        
             if (flags->output = 0) {
@@ -234,6 +235,7 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
             }
         }
         
+        /* */
         if (strncmp(command, "dsplr", len) == 0) {
             value = 1;
             flags->dsprl = 0;
@@ -242,13 +244,15 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
             printf("display left to right stream\n");
         }
         
+        /* */
         if (strncmp(command, "dsprl", len) == 0) {
             value = 1;     
             flags->dsprl = 1;
-            flags->dsplr = 0;                    
+            flags->dsplr = 0;             
             printf("display right to left stream\n");
         }
         
+        /* */
         if (strncmp(command, "display", len) == 0) {
             value = 1;
             if(flags->dsplr){
@@ -258,37 +262,45 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
                 printf("display left\n");
             }        
         }
-        
-        if (strncmp(command, "dropr", len) == 0) {
-            value = 1;
-            flags->dropr = 1;
-            shutdown( *rd, 2);
-            printf("drop right\n");
-        }
-        
-        if (strncmp(command, "dropl", len) == 0) {
-            value = 2;
-            flags->dropl = 1;        
-            printf("drop left\n");
-        }
-        
+
+        /* */
         if (strncmp(command, "persl", len) == 0) {
-            value = 1;
+            value = 2;
             flags->persl = 1;
+            *openld = 1;
             printf("persl\n");
         }
         
+        /* */
         if (strncmp(command, "persr", len) == 0) {        
-            value = 1;
+            value = 3;
             flags->persr = 1;
+            *openrd = 1;
             printf("persrl\n");
-        }
+        }        
         
+        /* */
+        if (strncmp(command, "dropl", len) == 0) {
+            value = 4;
+            flags->dropl = 1;          
+            printf("drop left\n");
+        }   
+        
+        /* */
+        if (strncmp(command, "dropr", len) == 0) {
+            value = 5;
+            flags->dropr = 1;
+            *openrd = 0;
+            shutdown( *rd, 2);
+            printf("drop right\n");
+        }            
+        
+        /* */
         if (strncmp(command, "right", len) == 0){    
             value = 1;                
             printf("%s:%hu", flags->lladdr, flags->llport);
             if(*openrd == 1){
-                printf(":%s:%hu",inet_ntoa(right.sin_addr), right.sin_port);            
+                printf(":%s:%hu", flags->rraddr, flags->rrport);
             }
             else{
                 printf(":*:*");
@@ -302,10 +314,11 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
             }
         }
         
-        if (strncmp(command, "left", len) == 0) {                
+        /* left side connection*/
+        if (strncmp(command, "left", len) == 0){
             value = 1;                
-            if(position != 1 && !flags->dropl && *openld == 1){
-                printf("%s:%hu",inet_ntoa(right.sin_addr), right.sin_port);            
+            if( *openld == 1){
+                printf("%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);            
             }
             else{
                 printf("*:*");
@@ -322,15 +335,18 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
         }
         
         if (strncmp(command, "loopr", len) == 0) {
-            value = 1;
+            value = 1;            
             flags->loopr = 1;
+            flags->output = 0;
             printf("loopr\n");
         }
         if (strncmp(command, "loopl", len) == 0) {        
             value = 1;
-            flags->loopr = 1;
-            printf("loopr\n");
-        }    
+            flags->loopl = 1;
+            flags->output = 1;
+            printf("loopl\n");
+        }
+        
         return value;
 }
 /*End flagsfunction*/
@@ -366,3 +382,23 @@ char *strdup(const char *str){
     }
     return ret;
 }
+
+/*
+*Function:  
+*           connectionopt
+* 
+*Description: 
+*           performs the appopriate connection task
+* 
+*Relavent Arguments:
+*            2  reserved for persl
+*            3  reserved for persr
+*            4  reserved for dropl
+*            5  reserver for dropr
+*Returns : 
+*           None, function is called with the valid return values of flags 
+*               function.
+*/
+
+// void connectopt(icmd * flags, fd_set *masterset,  int *openld, int *openrd, int *desc, int *rd, struct sockaddr_in conn, struct hosten *host){        
+// }
