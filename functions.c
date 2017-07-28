@@ -345,6 +345,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         flags->loopr = 1;
         flags->output = 0;
         printf("loopr\n");
+
     }
     if (strncmp(command, "loopl", len) == 0) {
         value = 1;
@@ -352,10 +353,16 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         flags->output = 1;
         printf("loopl\n");
     }
-    /*
-    if (strncp(command, "reset", len) == 0){
+
+    if (strncmp(command, "reset", len) == 0){
         flags->reset = 1;
-    }*/
+        clear();
+        w[0] = newwin(0,0,0,0);
+        touchwin(w[0]);
+        wmove(w[0],0,0);
+        wrefresh(w[0]);
+
+    }
 
     return value;
 }
@@ -387,8 +394,16 @@ char fileRead(const char *filename, char *output[255]) {
 void reset(){
     clear();
     w[0] = newwin(0,0,0,0);
+    touchwin(w[0]);
+    wmove(w[0],0,0);
+    wrefresh(w[0]);
+    //dropl
+    //dropr
+
+    // rebuid function
 
 }
+
 
 
 char *strdup(const char *str){

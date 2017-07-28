@@ -97,15 +97,15 @@ Arguments:
         read: filename: Read the contents of file “filename” and write it to the current output direction.
 
 *       llport [port]: Bind to local port “port” for a left side connection.
-*       rlport [port]: Bind to local port “port” for a left side connection.
-*       lrport [port]: Vccept a connection on the left side only if the remote computer attempting to connect has source port “port”.
+*       rlport [port]: Bind to local port “port” for a right side connection.
+*       lrport [port]: Accept a connection on the left side only if the remote computer attempting to connect has source port “port”.
 
-*       lraddr [IP]:
+        lraddr [IP]:
             When the left is put into passive mode (via a listenl command)
             accept a connection on the left side only if the remote computer
             attempting to connect has IP address “IP” If the left is placed in
             active mode (trying to connect) use this as the address to connect to.
-*       rraddr [IP]:
+        rraddr [IP]:
             If the right is set to passive mode to accept a connection on the
             right side, allow it only if the remote computer attempting to
             connect has IP address “IP”. If the right is placed in active mode
@@ -198,6 +198,7 @@ struct sockaddr_in lconn; /* structure to hold left connnecting address */
 #define RES_BUF_SIZE 80
 WINDOW *w[NUMWINS];
 WINDOW *sw[NUMWINS];
+WINDOW wh[NUMWINS];
 
 void update_win(int i) {
     touchwin(w[i]);
@@ -213,6 +214,7 @@ void update_win(int i) {
 /* add string to a window */
 void wAddstr(int z, char c[255]);
 
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
@@ -226,12 +228,24 @@ static struct option long_options[] =
                 {"loopr",   optional_argument, NULL, 'f'},
                 {"loopl",   optional_argument, NULL, 'g'},
                 {"persr",   optional_argument, NULL, 'h'},
+                {"persl",   optional_argument, NULL, 'i'},
                 {"llport",  optional_argument, NULL, 't'},
                 {"rraddr",  required_argument, NULL, 'z'},
                 {"rrport",  optional_argument, NULL, 'k'},
                 {NULL, 0,                      NULL, 0}
         };
 
+
+void GUIshutdown(char * response) {
+    wmove(sw[4], 0, 0);
+    wclrtoeol(sw[4]);
+    wprintw(sw[4], "All finished. Press Enter to terminate the program.");
+    update_win(4);
+    wgetstr(sw[4], response);
+/* End screen updating */
+    endwin();
+    echo();
+}
 
 /*
 *Function:
@@ -296,7 +310,6 @@ int main(int argc, char *argv[]) {
     int inputLength = 0;
 
 
-
     icmd  * flags;
     flags = malloc(sizeof(icmd));
 
@@ -311,6 +324,7 @@ int main(int argc, char *argv[]) {
     flags->loopr   = 0; /* take data that comes from the left and send it back to the left */
     flags->loopl   = 0; /* take data that comes in from the right and send back to the right */
     flags->output  = 1;
+    flags->reset   = 0;
 
     /* setup ncurses for multiple windows */
 
@@ -388,22 +402,16 @@ int main(int argc, char *argv[]) {
 
     wmove(sw[1], 4, 0);
     waddstr(sw[1], "Data leaving right side");
-
     wmove(sw[2], 4, 0);
     waddstr(sw[2], "Data leaving the left side");
-
     wmove(sw[3], 4, 0);
     waddstr(sw[3], "Data arriving from the right");
     wmove(sw[4], 0, 0);
     waddstr(sw[4], "Commands: ");
-
     wmove(sw[5], 0, 0);
-    waddstr(sw[5], "Input(s): ");
-
+    waddstr(sw[5], "Data Entry: ");
     wmove(sw[6], 0, 0);
     waddstr(sw[6], "Errors: ");
-
-
 
     for (int a = 0; a < NUMWINS; a++) update_win(a);
     // Place cursor at top corner of window 5
@@ -618,10 +626,12 @@ int main(int argc, char *argv[]) {
             case '?':
                 //fprintf(stderr, "invalid option: -%c\n", optopt);
                 // print into error reporting sw[6]
-                waddstr(sw[6]," No valid command");
+                waddstr(sw[6],"No valid command");
                 update_win(6);
+                GUIshutdown(response);
                 tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                 return -1;
+            default:break;
         }
     }
 
@@ -671,6 +681,7 @@ int main(int argc, char *argv[]) {
         //printf("Piggy right connection requires right address or DNS...\n");
         waddstr(sw[6]," Piggy right connection requires right address or DNS... ");
         update_win(6);
+        GUIshutdown(response);
         /*
         wmove(sw[4], 0, 0);
         wclrtoeol(sw[4]);
@@ -770,7 +781,7 @@ int main(int argc, char *argv[]) {
 
             FD_SET(parentld, &masterset);
             //printf("One left descriptor added to fd_set, left descriptor \n");
-            waddstr(sw[5],"One left descriptor added to fd_set, left descriptor \n");
+            waddstr(sw[5],"One left descriptor added to fd_set, left descriptor ");
             update_win(5);
     }
     /*end switch */
@@ -812,19 +823,23 @@ int main(int argc, char *argv[]) {
 
         if (FD_ISSET(0, &readset)) {
             ch = getchar();
+            //ch = wgetch(w[4]);
 
             switch(ch){
                 /*i*/
-                case 105:
 
+                case 105:
                     if(openrd || openld){
+                        wrefresh(w[5]);
                         //printf("Enter Insert\n");
                         waddstr(sw[5],"Enter Insert ");
                         update_win(5);
-
+                        nocbreak();
+                        echo();
 
                         while(1){
                             ch = getchar();
+                            ch = wgetch(w[5]);
 
                             if(ch == 27){
                                 //printf("\n");
@@ -833,7 +848,6 @@ int main(int argc, char *argv[]) {
                                 break;
                             }else{
                                 buf[0] = (char) ch;
-                                ;
                                 /* Preconditions for sending data to the right, output == 0 */
                                 if(flags->output && openrd){
                                     n = send(parentrd, buf, sizeof(buf), 0);
@@ -885,6 +899,7 @@ int main(int argc, char *argv[]) {
                     //printf("exiting\n");
                     waddstr(sw[5],"exiting ");
                     update_win(5);
+                    GUIshutdown(response);
                     tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
                     return 0;
                     /* : interactive commands*/
@@ -892,8 +907,13 @@ int main(int argc, char *argv[]) {
                     bzero(buf, sizeof(buf));
                     i = 0;
                     putchar(':');
-                    printf("Enter command mode\n");
-                    mvwaddch(w[5],w[5]-1,1,":");
+                    move(0,0);
+                    //printf("Enter command mode ");
+                    waddstr(sw[4],"Enter Command mode ");
+                    update_win(4);
+                    nocbreak();
+                    //echo();
+                    //mvwaddch(w[5],wh[5]-1,1,":");
                     while (1) {
                         ch = getchar();
                         if (ch == 10) {
@@ -901,8 +921,11 @@ int main(int argc, char *argv[]) {
                         } else {
                             buf[i++] = ch;
                             putchar(ch);
+                            waddch(w[4], ch);
                         }
                     }
+                    cbreak();
+                    noecho();
 
 
                     inputLength = strlen(buf);
@@ -919,7 +942,10 @@ int main(int argc, char *argv[]) {
 
                         /* Read from array and pass into flagfunction */
                         for (int x = 0; x < readCommandLines; ++x) {
-                            printf("%s\n", output[x]);
+                            //printf("%s\n", output[x]);
+                            waddstr(w[4], output[x]);
+                            update_win(4);
+
                             n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc,
                                               &parentrd, lconn, right);
 
@@ -939,7 +965,7 @@ int main(int argc, char *argv[]) {
                                     /* persr, make reconnection if necessary*/
                                 case 3:
                                     if (flags->position < 2 && !FD_ISSET(parentrd, &masterset)) {
-                                        printf("right side reconnecting..\n ");
+                                        printf("right side reconnecting.. ");
                                         pigopt = 2;
                                         parentrd = sock_init(flags, pigopt, 0, flags->rrport, flags->rraddr, right,
                                                              host);
@@ -1027,7 +1053,7 @@ int main(int argc, char *argv[]) {
                                         //printf("One right descriptor added to fd_set, right descriptor\n");
                                         waddstr(sw[5],"One right descriptor added to fd_set, right descriptor ");
                                         update_win(5);
-                                        printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+                                        //printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
                                     }
                                     else{
                                         flags->persr = 2;
@@ -1108,6 +1134,7 @@ int main(int argc, char *argv[]) {
             bzero(buf, sizeof(buf));
             n = recv(desc, buf, sizeof(buf), 0);
             printf("%c\n", buf[0]);
+            mvwaddch(w[0], 0, 0, buf[0] );
             if(n < 0){
                 //printf("recv left error \n");
                 waddstr(sw[6],"recv left error ");
@@ -1128,9 +1155,10 @@ int main(int argc, char *argv[]) {
  * */
             /* If dsplr is set we print data coming frm the right*/
             if(flags->dsplr == 1){
+
                 printf("%c", buf[0]);
                 // move window and display char;
-                mvwaddch(w[3],w[3]-1, 1,buf[0]);
+                //mvwaddch(w[3],w[3]-1, 1,buf[0]);
                 //printw(buf[0]);
 
             }
@@ -1292,7 +1320,7 @@ int main(int argc, char *argv[]) {
 
 
         /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
+/*
     // main ncurse loop
     for (int x = 0; x < 100; x++) {
 
@@ -1304,14 +1332,9 @@ int main(int argc, char *argv[]) {
         usleep(60000); // allows delay in printing each line
         update_win(0);
     }
+*/
 
-
-// begin shutdown of gui
-    wmove(sw[4], 0, 0);
-    wclrtoeol(sw[4]);
-    wprintw(sw[4], "All finished. Press Enter to terminate the program.");
-    update_win(4);
-    wgetstr(sw[4], response);
+GUIshutdown(response);
 /* End screen updating */
     endwin();
     echo();
@@ -1320,4 +1343,6 @@ int main(int argc, char *argv[]) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return 0;
+
+
 }/*end main*/

@@ -19,7 +19,9 @@ typedef struct flags{
     unsigned char persr;
     unsigned char loopr;
     unsigned char loopl;
+
     unsigned char reset;
+
     int llport;
     int rrport;
     char * rraddr;
