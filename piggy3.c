@@ -273,7 +273,7 @@ int main(int argc, char *argv[]) {
     newt = oldt;
 
     newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    //tcsetattr(STDIN_FILENO, TCSANOW, &newt);
     cfmakeraw(&newt);
 
     /***********************************************/
@@ -456,8 +456,12 @@ int main(int argc, char *argv[]) {
 
     ip = *(struct in_addr *) lhost->h_addr_list[0];
     flags->localaddr = inet_ntoa(ip);
-    printf("local address: %s\n", flags->localaddr);
+    printf("local address: %s", flags->localaddr);
     //printf("local addr: %s\n", flags->lladdr);
+
+    waddstr(sw[4], "local address ");
+    waddstr(sw[4], flags->localaddr);
+    update_win(4);
     /*********************************/
     /* End getting local IP address  */
     /*********************************/
@@ -490,7 +494,7 @@ int main(int argc, char *argv[]) {
                         n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
 
                         if (n < 0) {
-                            printf("invalid command\n");
+                            printf(" invalid command ");
                         }
                         /* Discard after being used*/
                         free(output[x]);
@@ -505,7 +509,7 @@ int main(int argc, char *argv[]) {
                         n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
 
                         if (n < 0) {
-                            printf("invalid command\n");
+                            printf(" invalid command ");
                         }
                         free(output[x]);
                     }
@@ -525,7 +529,7 @@ int main(int argc, char *argv[]) {
                 flags->dsplr = 0;
                 flags->dsprl = 1;
                 //printf("noRight\n");
-                waddstr(sw[4], "noright ");
+                waddstr(sw[4], " noRight ");
                 update_win(4);
                 break;
             case 'd':
@@ -831,8 +835,9 @@ int main(int argc, char *argv[]) {
         */
 
         if (FD_ISSET(0, &readset)) {
-            ch = getchar();
-            //ch = wgetch(w[4]);
+            //ch = getchar();
+            ch = wgetch(w[5]);
+            wrefresh(w[5]);
 
             switch(ch){
                 /*i*/
@@ -841,7 +846,10 @@ int main(int argc, char *argv[]) {
                     if(openrd || openld){
                         bzero(buf, sizeof(buf));
                         wrefresh(w[5]);
+                        update_win(5);
                         //printf("Enter Insert\n");
+                        werase(w[5]);
+                        wmove(sw[5], 0, 0);
                         waddstr(sw[5],"Enter Insert ");
                         update_win(5);
                         nocbreak();
@@ -853,6 +861,11 @@ int main(int argc, char *argv[]) {
                                 putchar(ch);
                                 buf[i] = (char) ch;
                                 ++i;
+
+                                nocbreak();
+                                echo();
+
+
                             }else{
                                 waddstr(sw[5],"\n");
                                 update_win(5);
@@ -897,12 +910,12 @@ int main(int argc, char *argv[]) {
                                 else{
                                     if(!openld & !flags->output){
                                         //printf("left connection closed\n");
-                                        waddstr(sw[6],"left connection closed");
+                                        waddstr(sw[6],"left connection closed ");
                                         update_win(6);
                                     }
                                     if( !openrd & flags->output == 1){
                                         //printf("left connection closed\n");
-                                        waddstr(sw[6],"left connection closed");
+                                        waddstr(sw[6],"left connection closed ");
                                         update_win(6);
                                     }
                                 }
