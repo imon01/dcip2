@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <getopt.h>
+#include <arpa/inet.h>
 #include <ctype.h>
+/*
 #include <zconf.h>
 #include <locale.h>
 #include <stdlib.h>
@@ -11,35 +12,28 @@
 #include <execinfo.h>
 #include <termios.h>
 #include <unistd.h>
-#include <arpa/inet.h>
+#include <getopt.h>
+
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/select.h>
 #include <ifaddrs.h>
-
+*/
 #ifndef unix
 #define WIN32
 #include <windows.h>
 #include <winsock.h>
 #else
+/*
 #define closesocket close
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+ */
 #include <netdb.h>
-
 #endif
-
-#include <curses.h>
-#include <locale.h>
-
-#define NUMWINS 7
-#define RES_BUF_SIZE 80
-WINDOW *w[NUMWINS];
-WINDOW *sw[NUMWINS];
-
 
 struct hostent;
 struct sockaddr_in;
@@ -117,7 +111,7 @@ int max(int a, int b){
 *Returns :
 *           socket descriptor
 */
-int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct sockaddr_in conn, struct hostent *host ){
+int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in conn, struct hostent *host ){
 
 
     int sd, len,n =0;
@@ -134,7 +128,6 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
 
         conn.sin_addr.s_addr = INADDR_ANY;
         conn.sin_port = htons((u_short)  port);
-
 
         /* Create a socket */
         if ( (sd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
@@ -166,10 +159,8 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
 
     /* Connecting */
     if(pigopt == 2){
-        printf("getting host\n");
         conn.sin_port = htons((u_short) port);
         host = gethostbyname(addr);
-        printf("memcpy\n");
         memcpy(&conn.sin_addr.s_addr, host->h_addr, host->h_length);
 
         //inet_aton(host->h_addr, &conn.sin_addr);
@@ -180,7 +171,7 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
             perror("socket");
             return -1;
         }
-
+        //printf("(%hu, %s, %d)\n",  (u_short) port, inet_ntoa(conn.sin_addr), sd );
         /* Connect to remote host*/
         if( (connect(sd, (struct sockaddr * )&conn, sizeof(conn))) < 0) {
             perror("!connect");
@@ -188,7 +179,7 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
             return -1;
         }
     }
-    printf("sock_init ok...\n");
+
     return sd;
 }/*end socket_init */
 
@@ -215,10 +206,11 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
     int value = -1;
     /* */
     if (strncmp(command, "outputl", len) == 0) {
+        value = 1;
         printf("set output to left piggy\n");
         flags->output =0;
-        flags->loopl = 0;
-        flags->loopr = 0;
+        //flags->loopl = 0;
+        //flags->loopr = 0;
     }
 
     /* */
@@ -226,14 +218,14 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
 
         value = 1;
         flags->output = 1;
-        flags->loopl = 0;
-        flags->loopr = 0;
+        //flags->loopl = 0;
+        //flags->loopr = 0;
     }
 
     /* */
     if (strncmp(command, "output", len) == 0) {
         value = 1;
-        if (flags->output = 0) {
+        if (flags->output == 0) {
             printf("output = left\n");
         }
         else{
@@ -255,7 +247,6 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         value = 1;
         flags->dsprl = 1;
         flags->dsplr = 0;
-        printf("display right to left stream\n");
     }
 
     /* */
@@ -274,7 +265,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         value = 2;
         flags->persl = 1;
         *openld = 1;
-        printf("persl\n");
+
     }
 
     /* */
@@ -282,14 +273,13 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         value = 3;
         flags->persr = 1;
         *openrd = 1;
-        printf("persrl\n");
+
     }
 
     /* */
     if (strncmp(command, "dropl", len) == 0) {
         value = 4;
         flags->dropl = 1;
-        printf("drop left\n");
     }
 
     /* */
@@ -298,7 +288,6 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         flags->dropr = 1;
         *openrd = 0;
         shutdown( *rd, 2);
-        printf("drop right\n");
     }
 
     /* */
@@ -323,7 +312,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
     /* left side connection*/
     if (strncmp(command, "left", len) == 0){
         value = 1;
-        if( *openld == 1){
+        if( *openld ){
             printf("%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);
         }
         else{
@@ -332,28 +321,26 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         printf(":%s:%hu", flags->lladdr, flags->llport);
 
 
-        if(flags->dropl){
-            printf("\nDISCONNECTED\n");
+        if( *openld){
+            printf("\nLISTENING\n");
         }
         else{
-            printf("\nLISTENING\n");
+            printf("\nDISCONNECTED\n");
         }
     }
 
     if (strncmp(command, "loopr", len) == 0) {
         value = 1;
-        flags->loopr = 1;
-        flags->output = 0;
-        printf("loopr\n");
+        flags->loopr = 1;  /* Takes data to be written to the right and sends left  */
+        flags->output = 0; /* Output becomes left with loopr                        */
 
     }
     if (strncmp(command, "loopl", len) == 0) {
         value = 1;
-        flags->loopl = 1;
-        flags->output = 1;
-        printf("loopl\n");
+        flags->loopl = 1;   /* Takes data to be written to the left and send right  */
+        flags->output = 1;  /* Output becomes right                                 */
     }
-
+    /*
     if (strncmp(command, "reset", len) == 0){
         flags->reset = 1;
         clear();
@@ -363,6 +350,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         wrefresh(w[0]);
 
     }
+     */
 
     return value;
 }
@@ -376,21 +364,37 @@ char fileRead(const char *filename, char *output[255]) {
     char input[255];
     char *line;
     FILE *file = fopen(filename, "r");
+    char buf[255] = "",
+            *delim = " \n";
 
-    if (file == NULL) {
-        printf("Cannot open file: %s\n", filename);
-    }else{
-        while(count < 255 && fgets(input, sizeof(input), file)) {
-            line = strtok(input, "\n");
-            if(line)
-                output[count++] = strdup(line);//Store replica
-        }
-        fclose(file);
+    if (!file) {  /* validate file open for reading */
+        fprintf (stderr, "error: file open failed '%s'.\n", filename);
+        return 1;
     }
 
+    if (!fgets (buf, 255, file)) {  /* read one line from file */
+        fprintf (stderr, "error: file read failed.\n");
+        return 1;
+    }
+
+    /* tokenize line with strtok */
+    for (char *p = strtok (buf, delim); p; p = strtok (NULL, delim))
+        output[count++] = strdup(p);//Store replica
+    if (file != stdin) {
+        fclose(file);     /* close file if not stdin */
+    }
     return count;
 }
+//
 
+char *strdup(const char *str){
+    char *ret = malloc(strlen(str)+1);
+    if(ret){
+        strcpy(ret, str);
+    }
+    return ret;
+}
+/*
 void reset(){
     clear();
     w[0] = newwin(0,0,0,0);
@@ -403,16 +407,7 @@ void reset(){
     // rebuid function
 
 }
-
-
-
-char *strdup(const char *str){
-    char *ret = malloc(strlen(str)+1);
-    if(ret){
-        strcpy(ret, str);
-    }
-    return ret;
-}
+ */
 
 /*
 *Function:

@@ -10,8 +10,8 @@ typedef struct flags{
     unsigned char noright;
     unsigned char output; /* output left (0), output right (1)*/
     unsigned char dsplr;
-    unsigned char reconl;
     unsigned char dsprl;
+    unsigned char reconl;
     unsigned char display;
     unsigned char dropr;
     unsigned char dropl;
@@ -19,11 +19,10 @@ typedef struct flags{
     unsigned char persr;
     unsigned char loopr;
     unsigned char loopl;
-
     unsigned char reset;
-
     int llport;
     int rrport;
+    char * localaddr;
     char * rraddr;
     char * lladdr;
     char * source; /* Source file*/
@@ -39,7 +38,7 @@ char *strdup(const char *);
 
 char fileRead(const char *, char *[]);
 
-int sock_init(icmd *, int, int, int, char *, struct sockaddr_in , struct hostent *);
+int sock_init(int, int, int, char *, struct sockaddr_in , struct hostent *);
 
 int flagsfunction(icmd *, char *, int , int, int *, int *, int *, int *, struct sockaddr_in, struct sockaddr_in);
 
