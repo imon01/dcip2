@@ -289,22 +289,32 @@ int main(int argc, char *argv[]) {
                             {3,  132, 40, 0}};    
 
 
+
+    /***********************************************/
+    /*  Flag variables init_init                   */
+    /***********************************************/                                
     icmd *flags;
     flags = malloc(sizeof(icmd));
+    
+    flags->noleft    = 0;
+    flags->noright   = 0;
+    bzero(flags->rraddr, sizeof(flags->rraddr));    /* Right connecting address                                           */
+    bzero(flags->rraddr, sizeof(flags->rraddr));    /* Left connected address                                             */
+    bzero(flags->rraddr, sizeof(flags->rraddr));    /* Local address                                                      */
+    flags->llport    = PROTOPORT;                   /* left protocol port number                                          */
+    flags->rrport    = PROTOPORT;                   /* right protocol port number                                         */
+    flags->dsplr     = 1;                           /* display left to right data, default if no display option provided  */   
+    flags->dsprl     = 0;                           /* display right  to left data                                        */
+    flags->loopr     = 0;                           /* take data that comes from the left and send it back to the left    */
+    flags->loopl     = 0;                           /* take data that comes in from the right and send back to the right  */
+    flags->output    = 1;
+    flags->reset     = 0;
 
-    flags->noleft = 0;
-    flags->noright = 0;
-    flags->rraddr = NULL;      /* hold addresses of left and right connect IP adresses */
-    flags->llport = PROTOPORT; /* left protocol port number */
-    flags->rrport = PROTOPORT; /* right protocol port number */
-    flags->dsplr = 1;          /* display left to right data, default if no display option provided */\
-    flags->dsprl = 0;          /* display right  to left data */
-    flags->loopr = 0;          /* take data that comes from the left and send it back to the left */
-    flags->loopl = 0;          /* take data that comes in from the right and send back to the right */
-    flags->output = 1;
-    flags->reset  = 0;
-
-    /* setup ncurses for multiple windows */
+    
+    
+    /***********************************************/
+    /* setup ncurses for multiple windows          */
+    /***********************************************/
     setlocale(LC_ALL, ""); // this has to do with the character set to use
     initscr();
     cbreak(); 
@@ -325,9 +335,8 @@ int main(int argc, char *argv[]) {
         move(1, 0);
         addstr("Set screen size to 132 by 43 and try again");
         move(2, 0);
-        addstr("Press enter to terminate program");
-        move(3,0);
-        wprintf("%dx%d\n", COLS, LINES);
+        addstr("Press enter to terminate program");        
+        mvprintw(3,0,"%dx%d\n", COLS, LINES);
         refresh();
         getstr(response); // Pause so we can see the screen
         endwin();
@@ -383,8 +392,9 @@ int main(int argc, char *argv[]) {
     wmove(sw[6], 0, 0);
     waddstr(sw[6], "Errors: ");
 
-    for (int a = 0; a < NUMWINS; a++) update_win(a);
-    // Place cursor at top corner of window 5
+    for (int a = 0; a < NUMWINS; a++){
+        update_win(a);    
+    }
     wmove(sw[4], 0, 0);
     wprintw(sw[4], "Press Enter to see the output in the upper left window scroll");
     wgetstr(sw[4], response); // Pause so we can see the screen
@@ -529,7 +539,7 @@ int main(int argc, char *argv[]) {
                 waddstr(sw[5],"right addrs parse...");
                 update_win(5);
 
-                flags->rraddr = argv[optind - 1];
+                strncpy(flags->rraddr, argv[optind - 1], sizeof(flags->rraddr));
 
                 hints.ai_family = AF_INET;
 
@@ -1384,7 +1394,6 @@ int main(int argc, char *argv[]) {
 
         /* Dummy condition for persl "reconnection" */
         if (flags->reconl) {
-            //printf("left side reconnecting attempt...\n ");
             waddstr(sw[5],"left side reconnecting attempt... ");
             update_win(5);
         }
@@ -1392,25 +1401,11 @@ int main(int argc, char *argv[]) {
 
 
 
-        /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/*
-    // main ncurse loop
-    for (int x = 0; x < 100; x++) {
-        // main system loop
-        wprintw(sw[0], "This is line \t %d of \t 100\n", x);
-        usleep(60000); // allows delay in printing each line
-        update_win(0);
-    }
-*/
-
-GUIshutdown(response);
-/* End screen updating */
+    /* End screen updating */
+    GUIshutdown(response);    
     endwin();
     echo();
-    // Bye
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    
     return 0;
 
 
