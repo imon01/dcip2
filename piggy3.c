@@ -141,9 +141,8 @@ Arguments:
 #include <stdlib.h>
 #include <getopt.h>
 #include <zconf.h>
-
-#include <termios.h>
-
+#include <curses.h>
+#include <locale.h>
 #include <arpa/inet.h>
 
 
@@ -157,49 +156,48 @@ Arguments:
 #include <execinfo.h>
 #include <unistd.h>
 #include <ctype.h>
+
 #ifndef unix
 #define WIN32
 #include <windows.h>
 #include <winsock.h>
 #else
 #define closesocket close
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
 #endif
 
-
-#define PROTOPORT 36795 /* default protocol port number, booknumber */
-#define QLEN 6 /* size of request queue */
-#define MAXSIZE 256
-
-
-/* For Windows OS ?*/
+/* For Windows OS*/
 #ifdef WIN32
 WSADATA wsaData;
 WSAStartup(0x0101, &wsaData);
 #endif
 
-extern int errno;
-char localhost[] = "localhost"; /* default host name */
-const char *DROPL = "REMOTE-LEFT-DROP";
-const char *PERSL = "REMOTE-LEFT-CONN";
-char *filename = "scriptin.txt"; // set default definition for filename
-struct hostent *host; /* pointer to a host table entry */
-//struct addrinfo hints, *infoptr; /*used for getting connecting right piggy if give DNS*/
-struct sockaddr_in left; /* structure to hold left address */
-struct sockaddr_in right; /* structure to hold right address */
-struct sockaddr_in lconn; /* structure to hold left connnecting address */
 
-/* ncurses libraries ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#include <curses.h>
-#include <locale.h>
-
+#define PROTOPORT 36795 /* default protocol port number, booknumber */
+#define QLEN 6          /* size of request queue */
+#define MAXSIZE 256
 #define NUMWINS 7
 #define RES_BUF_SIZE 80
+
+/* Window definitions */
+#define inLeft 0    /* Top left window */
+#define outRight 1  /* Top right window*/
+#define outLeft 2   /* Bottom left window*/
+# define inRight 3  /* Bottom right window*/
+
+
+extern int errno;
+char localhost[] = "localhost";         /* default host name */
+const char *DROPL = "REMOTE-LEFT-DROP";
+const char *PERSL = "REMOTE-LEFT-CONN";
+char *filename = "scriptin.txt";        /* set default definition for filename */
+struct hostent *host;                   /* pointer to a host table entry */
+struct sockaddr_in left;                /* structure to hold left address */
+struct sockaddr_in right;               /* structure to hold right address */
+struct sockaddr_in lconn;               /* structure to hold left connnecting address */
 WINDOW *w[NUMWINS];
 WINDOW *sw[NUMWINS];
 WINDOW wh[NUMWINS];
@@ -209,17 +207,9 @@ void update_win(int i) {
     wrefresh(sw[i]);
 }
 
-// definitions
-#define inLeft 0 // top left window
-#define outRight 1 // top right window
-#define outLeft 2 // bottom left window
-# define inRight 3 // bottom right window
 
 /* add string to a window */
 void wAddstr(int z, char c[255]);
-
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
 static struct option long_options[] =
@@ -246,7 +236,7 @@ void GUIshutdown(char * response) {
     wprintw(sw[4], "All finished. Press Enter to terminate the program.");
     update_win(4);
     wgetstr(sw[4], response);
-/* End screen updating */
+    /* End screen updating */
     endwin();
     echo();
 }
@@ -265,16 +255,6 @@ void GUIshutdown(char * response) {
 */
 int main(int argc, char *argv[]) {
 
-    /***********************************************/
-    /* Termios variables and functionalities       */
-    /***********************************************/
-    static struct termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-
-    newt.c_lflag &= ~(ICANON | ECHO);
-    //tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    cfmakeraw(&newt);
 
     /***********************************************/
     /* Use input arguments from loop to set values */
@@ -323,6 +303,21 @@ int main(int argc, char *argv[]) {
     char delimiter[] = " ";
     int readCommandLines;
     int inputLength = 0;
+    char *inputCopy;
+    
+    /***********************************************/
+    /* Ncurses windows variables                   */
+    /***********************************************/
+    
+    int a;
+    char response[RES_BUF_SIZE];
+    int WPOS[NUMWINS][4] = {{16, 66,  0,  0},
+                            {16, 66,  0,  66},
+                            {16, 66,  16, 0},
+                            {16, 66,  16, 66},
+                            {3,  132, 32, 0},
+                            {5,  132, 35, 0},
+                            {3,  132, 40, 0}};    
 
 
     icmd *flags;
@@ -341,36 +336,16 @@ int main(int argc, char *argv[]) {
     flags->reset  = 0;
 
     /* setup ncurses for multiple windows */
-
-    int a;
-    char response[RES_BUF_SIZE];
-    int WPOS[NUMWINS][4] = {{16, 66,  0,  0},
-                            {16, 66,  0,  66},
-                            {16, 66,  16, 0},
-                            {16, 66,  16, 66},
-                            {3,  132, 32, 0},
-                            {5,  132, 35, 0},
-                            {3,  132, 40, 0}};
     setlocale(LC_ALL, ""); // this has to do with the character set to use
+    initscr();
+    cbreak(); 
+    noecho(); 
+    nonl(); 
 
-    initscr(); // must always call this (or newterm) to initialize the
-    // library before any routines that deal with windows
-    // or the screen can be called
-
-    cbreak(); // this allows use to get characters as they are typed
-    // without the need for the user pressing the enter key
-
-    noecho(); // this means the characters typed are not
-    // shown on the screen unless we put them there
-
-    nonl(); // this means don't translate a newline character
-    // to a carraige return linefeed sequence on output
-
-    intrflush(stdscr, FALSE); //
-    keypad(stdscr, TRUE); //
+    intrflush(stdscr, FALSE); 
+    keypad(stdscr, TRUE); 
 
     /* Clear screen before starting */
-
     clear();
     w[0] = newwin(0,0,0,0);
 
@@ -384,6 +359,8 @@ int main(int argc, char *argv[]) {
         addstr("Set screen size to 132 by 43 and try again");
         move(2, 0);
         addstr("Press enter to terminate program");
+        move(3,0);
+        wprintf("%dx%d\n", COLS, LINES);
         refresh();
         getstr(response); // Pause so we can see the screen
         endwin();
@@ -437,48 +414,43 @@ int main(int argc, char *argv[]) {
     //wprintw(sw[4], "sleeping between each line");
     update_win(4);
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     /*********************************/
     /*    Getting local IP address   */
     /*********************************/
     if (gethostname(hostname, sizeof(hostname)) < 0) {
         printf("gethostname, local machine error\n");
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        endwin();
         return -1;
     }
 
     lhost = gethostbyname(hostname);
     if (lhost == NULL) {
         printf("gethostbyname, local machine error\n");
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        endwin();
         return -1;
     }
 
     ip = *(struct in_addr *) lhost->h_addr_list[0];
     flags->localaddr = inet_ntoa(ip);
-    printf("local address: %s", flags->localaddr);
-    //printf("local addr: %s\n", flags->lladdr);
+        
 
     waddstr(sw[4], "local address ");
     waddstr(sw[4], flags->localaddr);
     update_win(4);
-    /*********************************/
-    /* End getting local IP address  */
-    /*********************************/
+
 
 
 
     /*********************************/
     /*  Parsing argv[]               */
     /*********************************/
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
     while ((ch = getopt_long_only(argc, argv, "a::l::r::d::e::f::g::h::t::k:z:", long_options, &indexptr)) != -1) {
         switch (ch) {
             case 'a':
                 /* read file */
-                for (int comm = 0; argv[comm] != '\0'; comm++) {
-                    // check if filename included
+                for (int comm = 0; argv[comm] != '\0'; comm++) {                    
                     if (strstr(argv[comm], ".txt") != NULL) {
                         fileRequested = 1;
                         filename = argv[comm];
@@ -486,22 +458,20 @@ int main(int argc, char *argv[]) {
                 }
 
                 if (fileRequested) {
-
                     readLines = fileRead(filename, output);
+                    
                     /* read from array and pass into flag function*/
-                    for (x = 0; x < readLines; ++x) {
-                        // printf("%s\n", output[x]);
+                    for (x = 0; x < readLines; ++x) {                        
                         n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
 
                         if (n < 0) {
                             printf(" invalid command ");
-                        }
-                        /* Discard after being used*/
+                        }                        
                         free(output[x]);
                     }
 
                 }
-                    /* if none specified read from default filename*/
+                /* if none specified read from default filename*/
                 else {
                     readLines = fileRead("scriptin.txt", output);
                     /* read from array and pass into flag function  */
@@ -517,8 +487,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 'l':
                 openld = 0;
-                flags->noleft = 1;
-                //printf("noLeft\n");
+                flags->noleft = 1;                
                 waddstr(sw[4], "noleft ");
                 update_win(4);
                 break;
@@ -527,8 +496,7 @@ int main(int argc, char *argv[]) {
                 openrd = 0;
                 flags->noright = 2;
                 flags->dsplr = 0;
-                flags->dsprl = 1;
-                //printf("noRight\n");
+                flags->dsprl = 1;                
                 waddstr(sw[4], " noRight ");
                 update_win(4);
                 break;
@@ -540,23 +508,20 @@ int main(int argc, char *argv[]) {
             case 'e':
                 flags->dsprl = 1;
                 flags->dsplr = 0;
-                //printf("display right -> left \n");
                 waddstr(sw[4], "dsprl ");
                 update_win(4);
                 break;
 
             case 'f':
                 flags->loopr = 1;
-                flags->output = 1;
-                //printf("loopr\n");
+                flags->output = 1;                
                 waddstr(sw[4], "loopr ");
                 update_win(4);
                 break;
 
             case 'g':
                 flags->loopl = 1;
-                flags->output = 0;
-                //printf("loopl\n");
+                flags->output = 0;                
                 waddstr(sw[4], "loopl ");
                 update_win(4);
                 break;
@@ -567,7 +532,6 @@ int main(int argc, char *argv[]) {
 
             case 'h':
                 flags->persr = 1;
-                //openrd = 1;
                 waddstr(sw[4], "persr ");
                 update_win(4);
 
@@ -575,15 +539,12 @@ int main(int argc, char *argv[]) {
                 if (number(argv[optind]) > 0) {
                     flags->llport = atoi(argv[optind]);
                 } else {
-                    //printf("left port not a number: %s\n", argv[optind]);
                     waddstr(sw[6]," left port not a number");
                     update_win(6);
-                    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                    endwin();
                     return -1;
                 }
                 if (flags->llport < 0 || flags->llport > 88889) {
-                    // print into error reporting sw[6]
-                    //printf("left port number out of range: %d\n", flags.llport);
                     waddstr(sw[6]," left port number out of range");
                     update_win(6);
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
@@ -595,27 +556,22 @@ int main(int argc, char *argv[]) {
                 if (number(argv[optind - 1]) > 0) {
                     flags->rrport = atoi(argv[optind]);
                 } else {
-                    //printf("right port not a number: %s\n", argv[optind - 1]);
-                    // print into error reporting sw[6]
                     waddstr(sw[6]," right port not a number ");
                     waddstr(sw[6], argv[optind]);
                     update_win(6);
-                    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                    endwin();
                     return -1;
                 }
-                if (flags->rrport < 0 || flags->rrport > 88889) {
-                    //printf("right port number out of range: %d\n", flags.rrport);
+                if (flags->rrport < 0 || flags->rrport > 88889) {                    
                     waddstr(sw[6]," right port number out of range");
                     update_win(6);
-                    // print into error reporting sw[6]
-                    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                    endwin();
                     return -1;
                 }
                 /* test for illegal value */
                 break;
 
-            case 'z':
-                //printf("right addrs parse...\n");
+            case 'z':                
                 waddstr(sw[5],"right addrs parse...");
                 update_win(5);
 
@@ -627,8 +583,7 @@ int main(int argc, char *argv[]) {
 
                 if (n != 0) {
                     waddstr(sw[6]," rraddr error");
-                    update_win(6);
-                    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                    update_win(6);                
                     return -1;
                 }
 
@@ -683,8 +638,7 @@ int main(int argc, char *argv[]) {
         //printf("dsplr and dsprl cannot both be set...\n");
         waddstr(sw[6],"dsplr and dsprl cannot both be set...");
         update_win(6);
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-        return -1;
+        endwin();        
         exit(1);
     }
 
@@ -706,8 +660,7 @@ int main(int argc, char *argv[]) {
         //printf("Piggy right connection requires right address or DNS...\n");
         waddstr(sw[6],"Piggy right connection requires right address or DNS...");
         update_win(6);
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-        return -1;
+        endwin();        
         exit(1);
 
     }
@@ -730,14 +683,14 @@ int main(int argc, char *argv[]) {
             pigopt = 2;
             parentrd = sock_init( pigopt, 0, flags->rrport, flags->rraddr, right, host);
             if (parentrd < 0) {
-                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                endwin();
                 exit(1);
             }
 
             pigopt = 1;
             parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);
             if (parentld < 0) {
-                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                endwin();
                 exit(1);
             }
 
@@ -952,8 +905,8 @@ int main(int argc, char *argv[]) {
                     if(FD_ISSET(parentrd, &masterset)){
                         shutdown(parentrd,2);
                     }
-
-                    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                    
+                    endwin();
                     return 1;
 
                     /*
@@ -964,7 +917,7 @@ int main(int argc, char *argv[]) {
                     i = 0;
                     putchar(':');
                     move(0,0);
-                    //printf("Enter command mode ");
+                    
                     waddstr(sw[4],"Enter Command mode ");
                     update_win(4);
                     nocbreak();
@@ -985,7 +938,7 @@ int main(int argc, char *argv[]) {
 
 
                     inputLength = strlen(buf);
-                    char *inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
+                    inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
 
                     checker = strstr(bufCommand, "source");
                     if (checker == bufCommand) {
@@ -998,7 +951,7 @@ int main(int argc, char *argv[]) {
 
                         /* Read from array and pass into flagfunction */
                         for (x = 0; x < readCommandLines; ++x) {
-                            //printf("%s\n", output[x]);
+                            
                             waddstr(w[4], output[x]);
                             update_win(4);
 
