@@ -145,6 +145,17 @@ WSAStartup(0x0101, &wsaData);
 #endif
 
 
+/* Window defintion constants*/              
+                   
+#define ULW 0 /* upper left window      */
+#define URW 1 /* upper right window     */
+#define BLW 2 /* bottom left window     */
+#define BRW 3 /* bottom right window    */
+#define CMW 4 /* command window  */
+#define INW 5 /* inputs window   */          
+#define ERW 6 /* errors menu     */
+
+
 #define PROTOPORT 36795 /* default protocol port number, booknumber */
 #define QLEN 6          /* size of request queue */
 #define MAXSIZE 256
@@ -395,6 +406,7 @@ int main(int argc, char *argv[]) {
     for (int a = 0; a < NUMWINS; a++){
         update_win(a);    
     }
+    
     wmove(sw[4], 0, 0);
     wprintw(sw[4], "Press Enter to see the output in the upper left window scroll");
     wgetstr(sw[4], response); // Pause so we can see the screen
@@ -651,7 +663,7 @@ int main(int argc, char *argv[]) {
     
     
     /*********************************/
-    /* Descriptor set init           */
+    /* Init descriptor set           */
     /*********************************/       
     FD_ZERO(&masterset);
     FD_SET(0, &masterset);
