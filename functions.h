@@ -9,23 +9,22 @@ typedef struct flags{
     unsigned char noleft;
     unsigned char noright;
     unsigned char output; /* output left (0), output right (1)*/
-    unsigned char dsplr;
+    unsigned char dsplr;    
     unsigned char dsprl;
     unsigned char reconl;
-    unsigned char display;
-    unsigned char dropr;
+    unsigned char display;  
+    unsigned char dropr;  
     unsigned char dropl;
     unsigned char persl;
     unsigned char persr;
     unsigned char loopr;
     unsigned char loopl;
-    unsigned char reset;
     int llport;
     int rrport;
-    char * localaddr;
-    char * rraddr;
-    char * lladdr;
-    char * source; /* Source file*/
+    char localaddr [100];
+    char rraddr[100];   
+    char lladdr[100];
+    char source[100]; /* Source file*/   
 }icmd;
 
 
@@ -45,5 +44,6 @@ int flagsfunction(icmd *, char *, int , int, int *, int *, int *, int *, struct 
 //void connectopt(icmd *, fd_set *,  int *, int *, int *, int *, struct sockaddr_in, struct hosten *);
 
 #endif
-
-
+    
+    
+ 
