@@ -282,6 +282,7 @@ int main(int argc, char *argv[]) {
     char errorstr[32];
     char buf[MAXSIZE];  /* buffer for string the server sends      */
     char *output[MAXSIZE];
+    char cbuf[RES_BUF_SIZE];
     /***********************************************/
     /* Control flow variables                      */
     /***********************************************/
@@ -793,8 +794,6 @@ int main(int argc, char *argv[]) {
                 noecho();
                 c = wgetch(sw[CMW]);
 
-                waddstr(sw[INW], "press : to enter command mode, or i to insert or q to quit");
-                update_win(INW);
 
                 switch (c) {
 
@@ -918,28 +917,68 @@ int main(int argc, char *argv[]) {
                         /*
                          * Interactive commands
                          */
-                    case 58:
+                    default:
+                        wmove(sw[CMW], 0,0);
+                        wclrtoeol(sw[CMW]);
+                        update_win(CMW);
                         bzero(buf, sizeof(buf));
                         i = 0;
                         putchar(':');
+                        echo();
+                        nocbreak;
 
-                        waddstr(sw[4], " Enter Command mode");
+                        waddstr(sw[4], "Command mode ");
                         update_win(4);
 
                         while (1) {
+                            c = wgetch(sw[CMW]);
+                            wmove(sw[BRW], 0,0);
+                            wclrtoeol(sw[BRW]);
+                            update_win(BRW);
+                            wprintw(sw[BRW], "%d",c);
+                            update_win(BRW);
 
-                            ch = getchar();
-                            if (ch == 10) {
+                            if( c >31 && c < 127  || c ==8){
+                                cbuf[i]= (char) c;
+                                i++;
+                                wclrtoeol(sw[CMW]);
+                                update_win(CMW);
+                            }
+                            else if(c == 13){
+
+                                /* PROCESS COMMAND HERE, USER COMMAND STORED IN CBUF*/
+                                wmove(sw[INW], 0,0);
+                                wclrtoeol(sw[INW]);
+                                update_win(INW);
+
+                                wmove(sw[INW], 0,0);
+                                wclrtoeol(sw[INW]);
+                                wprintw(sw[INW], "command: %s",cbuf );
+                                update_win(INW);
                                 break;
-                            } else {
-                                werase(w[5]);
-                                buf[i++] = ch;
-                                putchar(ch);
-                                waddch(w[4], ch);
+                            }
+                            else{
+                                noecho();
+                                wmove(sw[CMW], 0,0);
+                                wclrtoeol(sw[CMW]);
+                                update_win(CMW);
+                                winwrite(CMW, "not a printable character");
+                                wclrtoeol(sw[CMW]);
+                                update_win(CMW);
+                                break;
                             }
                         }
-                        cbreak();
+
                         noecho();
+                        if(i == RES_BUF_SIZE){
+                            winwrite(ERW, "cbuf full");
+                        }
+
+                        wmove(sw[CMW], 0,0);
+                        wclrtoeol(sw[CMW]);
+                        update_win(CMW);
+                        noecho();
+                        //winwrite(CMW, "processing command...");
 
                         inputLength = strlen(buf);
                         inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
@@ -1338,8 +1377,6 @@ int main(int argc, char *argv[]) {
                             }/* end else */
                             break;
                         }/* End else single interactive command string*/
-
-                    default:break;
                 }/* End stdin descriptor loop*/
                 wmove(sw[CMW], 0, 0);
                 wclrtoeol(sw[CMW]);
