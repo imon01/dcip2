@@ -75,12 +75,12 @@ Arguments:
 *       llport [port]: Bind to local port “port” for a left side connection.
 *       rlport [port]: Bind to local port “port” for a right side connection.
 *       lrport [port]: Accept a connection on the left side only if the remote computer attempting to connect has source port “port”.
-        lraddr [IP]:
+*       lraddr [IP]:
             When the left is put into passive mode (via a listenl command)
             accept a connection on the left side only if the remote computer
             attempting to connect has IP address “IP” If the left is placed in
             active mode (trying to connect) use this as the address to connect to.
-        rraddr [IP]:
+*       rraddr [IP]:
             If the right is set to passive mode to accept a connection on the
             right side, allow it only if the remote computer attempting to
             connect has IP address “IP”. If the right is placed in active mode
@@ -156,6 +156,8 @@ struct hostent *host;                   /* pointer to a host table entry */
 struct sockaddr_in left;                /* structure to hold left address */
 struct sockaddr_in right;               /* structure to hold right address */
 struct sockaddr_in lconn;               /* structure to hold left connnecting address */
+
+int inputDesignation = -1;
 
 void update_win(int i) {
     touchwin(w[i]);
@@ -270,6 +272,7 @@ int main(int argc, char *argv[]) {
     /* Use input arguments from loop to set values */
     /***********************************************/
     int i, n, x, len, ch;
+    int written = 0;
     int maxfd;          /* max descriptor                          */
     int pigopt;         /* piggy position indicating variable      */
     int indexptr;       /* generic ponter for getopt_long_only API */
@@ -306,7 +309,7 @@ int main(int argc, char *argv[]) {
     /***********************************************/
     /* File related variables                      */
     /***********************************************/
-    char *bufCommand = buf;
+    char *inputCheck = buf;
     char *checker = NULL;
     int readLines;
     int fileRequested = 0;
@@ -454,7 +457,7 @@ int main(int argc, char *argv[]) {
                     /* read from array and pass into flag function*/
                     for (x = 0; x < readLines; ++x) {
                         n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc,
-                                          &parentrd, right, lconn);
+                                          &parentrd, right, lconn, inputDesignation);
 
                         if (n < 0) {
                             nerror("invalid command");
@@ -469,7 +472,7 @@ int main(int argc, char *argv[]) {
                     /* read from array and pass into flag function  */
                     for (x = 0; x < readLines; ++x) {
                         n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc,
-                                          &parentrd, right, lconn);
+                                          &parentrd, right, lconn, inputDesignation);
 
                         if (n < 0) {
                             nerror("invalid command");
@@ -940,9 +943,17 @@ int main(int argc, char *argv[]) {
 
                         inputLength = strlen(buf);
                         inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
+//
+                        const char *writtenInputs[] = {"connectl", "connectr", "listenl", "listenr", "llport", "rrport", "lrport", "rlport", "lladdr", "rraddr"};
+                        for(int l = 0; l < 9; l++) {
+                            checker = strstr(inputCheck, writtenInputs[l]);
+                            if (checker == inputCheck) {
+                                written = 1;
+                            }
+                        }
 
-                        checker = strstr(bufCommand, "source");
-                        if (checker == bufCommand) {
+                        checker = strstr(inputCheck, "source");
+                        if (checker == inputCheck) {
                             strncpy(inputCopy, buf, inputLength);
                             strtok_r(inputCopy, delimiter, &end);
                             word2 = strtok_r(NULL, delimiter, &end);
@@ -957,7 +968,7 @@ int main(int argc, char *argv[]) {
                                 update_win(4);
 
                                 n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd,
-                                                  &desc, &parentrd, lconn, right);
+                                                  &desc, &parentrd, lconn, right, inputDesignation);
 
                                 if (flags->reset == 1) {
                                     resetWindows();
@@ -1062,11 +1073,171 @@ int main(int argc, char *argv[]) {
 
 
                             break;
+
+                            // piggy 3 inputs
+                        } else if(written == 1) {
+
+                            for (int l = 0; l < 9; l++) {
+                                checker = strstr(inputCheck, writtenInputs[l]);
+
+                                if (checker == inputCheck) {
+                                    strncpy(inputCopy, buf, inputLength);
+                                    strtok_r(inputCopy, delimiter, &end);
+                                    word2 = strtok_r(NULL, delimiter, &end);
+
+                                    if (word2 != NULL) {
+
+                                        inputDesignation = l;
+
+                                        // connectl
+                                        if(inputDesignation == 0){
+                                            flags-> connectl = (char) word2;
+                                        }
+                                            // connectr
+                                        else if(inputDesignation == 1){
+                                            flags-> connectl = (char) word2;
+                                        }
+                                            //listenl
+                                        else if(inputDesignation == 2){
+                                            flags-> connectl = (char) word2;
+                                        }
+                                            // listenr
+                                        else if(inputDesignation == 3){
+                                            flags-> connectl = (char) word2;
+                                        }
+                                            // llport
+                                        else if(inputDesignation == 4){
+                                            flags->llport = (int) word2;
+                                        }
+                                        else if(inputDesignation == 5){
+                                            flags->rrport = (int) word2;
+                                        }
+                                            // lrport
+                                        else if(inputDesignation == 6){
+                                            flags-> lrport = (int) word2;
+                                        }
+                                            // rlport
+                                        else if(inputDesignation == 7){
+                                            flags-> rlport = (int) word2;
+                                        }
+                                            // lladdr
+                                        else if(inputDesignation == 8){
+                                            flags-> lladdr[100] = (char) word2;
+                                        }
+                                            // rraddr
+                                        else if(inputDesignation == 9){
+                                            flags-> rraddr[100] = (char) word2;
+                                        }
+
+
+
+                                        n = flagsfunction(flags, word2, sizeof(word2), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right, inputDesignation);
+                                        inputDesignation = -1;
+                                        if (flags->reset == 1) {
+                                            resetWindows();
+                                            break;
+                                        } else {
+
+                                            switch (n) {
+                                                /*
+                                                *  valid command
+                                                */
+                                                case 1:
+
+
+                                                    /*
+                                                    *  persl
+                                                    */
+                                                case 2:
+                                                    if (flags->position != 1) {
+                                                        bzero(buf, sizeof(buf));
+                                                        strcpy(buf, PERSL);
+                                                        n = send(desc, buf, sizeof(buf), 0);
+
+                                                        if (n < 0) {
+                                                            openld = 0;
+                                                        } else {
+                                                            FD_SET(desc, &masterset);
+                                                            nerror("connection established");
+                                                            openld = 1;
+                                                        }
+                                                    }
+                                                    bzero(buf, sizeof(buf));
+                                                    break;
+
+                                                    /*
+                                                    *  persr, make reconnection if necessary
+                                                    */
+                                                case 3:
+                                                    if (flags->position < 2 && !FD_ISSET(parentrd, &masterset)) {
+
+                                                        winwrite(CMW, "right side reconnecting");
+                                                        pigopt = 2;
+                                                        parentrd = sock_init(pigopt, 0, flags->rrport,
+                                                                             flags->rraddr, right, host);
+
+                                                        if (parentrd > 0) {
+
+                                                            winwrite(CMW, "connection established");
+                                                            openrd = 1;
+                                                            openld = 0;
+                                                            maxfd = max(desc, parentld);
+                                                            maxfd = max(maxfd, parentrd);
+                                                            FD_SET(parentrd, &masterset);
+                                                        } else {
+                                                            flags->persr = 2;
+                                                        }
+                                                    }
+                                                    break;
+
+                                                    /*
+                                                    *  dropl
+                                                    */
+                                                case 4:
+
+                                                    /*
+                                                    * Notes:
+                                                    *   -valid of piggies with postion 0 & 2
+                                                    *   -Openld closed
+                                                    *   -dropl behavior: message sent to connecting piggy
+                                                    *   -clear output left
+                                                    */
+                                                    if (desc > 0) {
+                                                        bzero(buf, sizeof(buf));
+                                                        strcpy(buf, DROPL);
+
+                                                        n = send(desc, buf, sizeof(buf), 0);
+                                                        openld = 0;
+                                                        if (n < 0) {
+                                                            continue;
+                                                        }
+//                                    FD_CLR(desc, &masterset);
+                                                    }
+                                                    bzero(buf, sizeof(buf));
+                                                    break;
+
+                                                    /*
+                                                    *  dropr
+                                                    */
+                                                case 5:
+                                                    /* parentrd socket already closed in flagsfunction*/
+                                                    if (parentrd > 0) {
+                                                        FD_CLR(parentrd, &masterset);
+                                                    }
+                                                    break;
+                                            }
+
+                                        }
+                                    }
+                                }
+                            }
                         }
-                            /* End reading commands from bufCommand*/
+                            /* End reading commands from inputCheck*/
                         else {
                             n = flagsfunction(flags, buf, sizeof(buf), flags->position, &openld, &openrd, &desc,
-                                              &parentrd, lconn, right);
+                                              &parentrd, lconn, right, inputDesignation);
+
+
                             if(flags->reset == 1) {
                                 resetWindows();
                                 break;

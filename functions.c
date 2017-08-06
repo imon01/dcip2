@@ -202,7 +202,7 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
 *            4  reserved for dropl
 *            5  reserver for dropr
 */
-int flagsfunction( icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right){
+int flagsfunction( icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right, int inputDesignation){
     int value = -1;
 
     /* output left (0), output right (1)*/
@@ -326,7 +326,20 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         }
     }
 
+    if (strncmp(command, "outputl", len) == 0) {
 
+        if(position != 1){
+            value = 1;
+            flags->output =0;
+        }
+        else{
+            printf("Cant set head piggy output right\n");
+        }
+    }
+    if (strncmp(command, "reset", len) == 0) {
+        value = 1;
+        flags->reset = 1;
+    }
 
 
     /* left side connection*/
@@ -359,6 +372,9 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         value = 1;
         flags->loopl = 1;   /* Takes data to be written to the left and send right  */
         flags->output = 1;  /* Output becomes right                                 */
+    }
+    if (inputDesignation != -1){
+        value = 1;
     }
 
     return value;

@@ -54,6 +54,12 @@ typedef struct flags{
     int lrport;                 /* Left accepting conditional port              */
     int rlport;                 /* Right side listening port                    */
 
+    char connectl;
+    char connectr;
+    char listenl;
+    char listenr;
+
+
     unsigned char position;
     unsigned char noleft;
     unsigned char noright;
@@ -88,7 +94,7 @@ char fileRead(const char *, char *[]);
 
 int sock_init(int, int, int, char *, struct sockaddr_in , struct hostent *);
 
-int flagsfunction(icmd *, char *, int , int, int *, int *, int *, int *, struct sockaddr_in, struct sockaddr_in);
+int flagsfunction(icmd *, char *, int , int, int *, int *, int *, int *, struct sockaddr_in, struct sockaddr_in, int inputDesignation);
 
 //void connectopt(icmd *, fd_set *,  int *, int *, int *, int *, struct sockaddr_in, struct hosten *);
 
