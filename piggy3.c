@@ -829,6 +829,8 @@ int main(int argc, char *argv[]) {
                                         ++i;
                                         echo();
 
+                                        wprintw(sw[ULW], buf);
+                                        update_win(ULW);
 //
                                         buf[i] = '\0';
                                         i = 0;
@@ -1445,9 +1447,11 @@ int main(int argc, char *argv[]) {
             * printw
             *
             */
-            /* If dsplr is set we print data coming frm the right*/
+            /* If dsplr is set we print data coming frm the left*/
             if (flags->dsplr) {
-                printf("%s\n", buf);
+                //printf("%s\n", buf);
+                wprintw(sw[BRW], buf);
+                update_win(BRW);
             }
 
             /* Loop data right if set*/
@@ -1550,7 +1554,9 @@ int main(int argc, char *argv[]) {
             } else {
                 /* If dsprl is set we print data coming frm the right*/
                 if (flags->dsprl) {
-                    printf("%s\n", buf);
+                    //printf("%s\n", buf);
+                    wprintw(sw[URW], buf);
+                    update_win(URW);
                 }
 
                 if (flags->loopl == 1) {
