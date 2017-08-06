@@ -1091,42 +1091,42 @@ int main(int argc, char *argv[]) {
 
                                         // connectl
                                         if(inputDesignation == 0){
-                                            flags-> connectl = (char) word2;
+                                            flags-> connectl = *word2;
                                         }
                                             // connectr
                                         else if(inputDesignation == 1){
-                                            flags-> connectl = (char) word2;
+                                            flags-> connectl = *word2;
                                         }
                                             //listenl
                                         else if(inputDesignation == 2){
-                                            flags-> connectl = (char) word2;
+                                            flags-> connectl = *word2;
                                         }
                                             // listenr
                                         else if(inputDesignation == 3){
-                                            flags-> connectl = (char) word2;
+                                            flags-> connectl = *word2;
                                         }
                                             // llport
                                         else if(inputDesignation == 4){
-                                            flags->llport = (int) word2;
+                                            flags->llport = (int) *word2;
                                         }
                                         else if(inputDesignation == 5){
-                                            flags->rrport = (int) word2;
+                                            flags->rrport = (int) *word2;
                                         }
                                             // lrport
                                         else if(inputDesignation == 6){
-                                            flags-> lrport = (int) word2;
+                                            flags-> lrport = (int) *word2;
                                         }
                                             // rlport
                                         else if(inputDesignation == 7){
-                                            flags-> rlport = (int) word2;
+                                            flags-> rlport = (int) *word2;
                                         }
                                             // lladdr
                                         else if(inputDesignation == 8){
-                                            flags-> lladdr[100] = (char) word2;
+                                            flags-> lladdr[100] = *word2;
                                         }
                                             // rraddr
                                         else if(inputDesignation == 9){
-                                            flags-> rraddr[100] = (char) word2;
+                                            flags-> rraddr[100] = *word2;
                                         }
 
 
