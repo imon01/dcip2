@@ -220,7 +220,14 @@ void resetWindows() {
     flags->loopr = 0;                           /* take data that comes from the left and send it back to the left    */
     flags->loopl = 0;                           /* take data that comes in from the right and send back to the right  */
     flags->output = 1;
+
+    flags->connectl = 0;
+    flags->connectr = 0;
+    flags->listenl = 0;
+    flags->listenr = 0;
+
     flags->reset = 0;
+
 
 }
 
@@ -793,12 +800,7 @@ int main(int argc, char *argv[]) {
             while (1) {
                 noecho();
                 c = wgetch(sw[CMW]);
-
-
                 switch (c) {
-
-
-
                     /*
                      * insert mode
                      */
@@ -850,7 +852,6 @@ int main(int argc, char *argv[]) {
                                                 flags->reconl = 1;
                                                 break;
                                             }
-
                                         }
 
                                             /* Preconditions for sending data to the left, output == 0 */
@@ -873,8 +874,6 @@ int main(int argc, char *argv[]) {
                                                 nerror("left connection closed ");
                                             }
                                         }
-
-                                    // escape
                                     } else {
                                         waddstr(sw[INW], "press : to enter command mode, or i to insert or q to quit");
                                         update_win(INW);
@@ -940,13 +939,15 @@ int main(int argc, char *argv[]) {
                             wprintw(sw[BRW], "%d",c);
                             update_win(BRW);
 
-                            if( c >31 && c < 127  || c ==8){
+                            if( c >31 && c < 127  || c == 8){
                                 cbuf[i]= (char) c;
                                 i++;
                                 wclrtoeol(sw[CMW]);
                                 update_win(CMW);
                             }
                             else if(c == 13){
+
+
 
                                 /* PROCESS COMMAND HERE, USER COMMAND STORED IN CBUF*/
                                 wmove(sw[INW], 0,0);
@@ -955,7 +956,7 @@ int main(int argc, char *argv[]) {
 
                                 wmove(sw[INW], 0,0);
                                 wclrtoeol(sw[INW]);
-                                wprintw(sw[INW], "command: %s",cbuf );
+                                wprintw(sw[INW], "command: %s",cbuf);
                                 update_win(INW);
                                 break;
                             }
