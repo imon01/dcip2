@@ -89,6 +89,7 @@ int max(int, int);
 
 char *strdup(const char *);
 
+void nerror(char *str);
 
 char fileRead(const char *, char *[]);
 
