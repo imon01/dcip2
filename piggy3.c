@@ -941,43 +941,43 @@ int main(int argc, char *argv[]) {
                     case KEY_UP:
                         getyx(curscr , r, s);
                         s--;
-                        wmove(sw[CMW], r,s);
+                        wmove(sw[CMW], r, s);
                         break;
                     case KEY_DOWN:
                         getyx(curscr , r, s);
                         s++;
-                        wmove(sw[CMW], r,s);
+                        wmove(sw[CMW], r, s);
                         break;
 
                     case KEY_LEFT:
                         getyx(curscr , r, s);
                         r--;
-                        wmove(sw[CMW], r,s);
+                        wmove(sw[CMW], r, s);
                         break;
                     case KEY_RIGHT:
                         getyx(curscr , r, s);
                         r++;
-                        wmove(sw[CMW], r,s);
+                        wmove(sw[CMW], r, s);
                         break;
 
                         /*
                          * Interactive commands
                          */
                     default:
-                        wmove(sw[CMW], 0,0);
-                        wclrtoeol(sw[CMW]);
-                        update_win(CMW);
+                        wmove(sw[INW], 0,0);
+                        wclrtoeol(sw[INW]);
+                        update_win(INW);
                         bzero(buf, sizeof(buf));
                         i = 0;
                         putchar(':');
                         echo();
                         nocbreak;
 
-                        waddstr(sw[4], "Command mode ");
-                        update_win(4);
+                        waddstr(sw[5], "Command mode ");
+                        update_win(5);
 
                         while (1) {
-                            c = wgetch(sw[CMW]);
+                            c = wgetch(sw[INW]);
                             wmove(sw[BRW], 0,0);
                             wclrtoeol(sw[BRW]);
                             update_win(BRW);
@@ -1000,14 +1000,11 @@ int main(int argc, char *argv[]) {
 
                                 /* PROCESS COMMAND HERE, USER COMMAND STORED IN CBUF*/
 
-                                wmove(sw[INW], 0,0);
-                                wclrtoeol(sw[INW]);
-                                update_win(INW);
 
-                                wmove(sw[INW], 0,0);
-                                wclrtoeol(sw[INW]);
-                                wprintw(sw[INW], "command: %s", buf);
-                                update_win(INW);
+                                wmove(sw[CMW], 0,0);
+                                wclrtoeol(sw[CMW]);
+                                wprintw(sw[CMW], "command: %s ", buf);
+                                update_win(CMW);
                                 break;
                             }
                             else{
@@ -1015,7 +1012,7 @@ int main(int argc, char *argv[]) {
                                 wmove(sw[CMW], 0,0);
                                 wclrtoeol(sw[CMW]);
                                 update_win(CMW);
-                                winwrite(CMW, "not a printable character");
+                                nerror("not a printable character");
                                 wclrtoeol(sw[CMW]);
                                 update_win(CMW);
                                 break;
@@ -1027,10 +1024,10 @@ int main(int argc, char *argv[]) {
                             winwrite(ERW, "buf full");
                         }
 
-                        wmove(sw[CMW], 0,0);
-                        wclrtoeol(sw[CMW]);
-                        update_win(CMW);
-                        noecho();
+                        //wmove(sw[INW], 0,0);
+                        //wclrtoeol(sw[INW]);
+                        //update_win(INW);
+                        //noecho();
                         //winwrite(CMW, "processing command...");
 
                         inputLength = strlen(buf);
@@ -1431,8 +1428,8 @@ int main(int argc, char *argv[]) {
                             break;
                         }/* End else single interactive command string*/
                 }/* End stdin descriptor loop*/
-                wmove(sw[CMW], 0, 0);
-                wclrtoeol(sw[CMW]);
+                wmove(sw[INW], 0, 0);
+                wclrtoeol(sw[INW]);
             }
 
         }/*End stdin */
