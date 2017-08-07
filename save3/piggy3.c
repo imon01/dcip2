@@ -767,7 +767,7 @@ int main(int argc, char *argv[]) {
     /*  maxfd == parentld or maxfd == parentrd               */
     maxfd = max(parentld, parentrd);
 
-    while (1) {        
+    while (1) {
         memcpy(&readset, &masterset, sizeof(masterset));
 
         /**/
@@ -793,8 +793,9 @@ int main(int argc, char *argv[]) {
 
         
         if (FD_ISSET(0, &readset)) {
-            
-            
+            wmove(sw[CMW], 0, 0);
+            wclrtoeol(sw[CMW]);
+
             while (1) {
                 noecho();
                 c = wgetch(sw[CMW]);
@@ -913,8 +914,8 @@ int main(int argc, char *argv[]) {
                     default:
                         bzero(cbuf, sizeof(cbuf));                                                
                         
-                        /*`1*/                        
-                        winwrite(CMW, ": ");
+                        /*`1*/
+                        winwrite(CMW, ":");
                         i = 0;
                         
                         echo();
