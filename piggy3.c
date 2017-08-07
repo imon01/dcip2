@@ -183,7 +183,15 @@ void wAddstr(int z, char c[255]);
 
 
 /* clear the windows and set all variables to default */
-void resetWindows() {
+void resetWindows(icmd * flags) {
+    int WPOS[NUMWINS][4] = {{16, 66,  0,  0},
+                            {16, 66,  0,  66},
+                            {16, 66,  16, 0},
+                            {16, 66,  16, 66},
+                            {3,  132, 32, 0},
+                            {5,  132, 35, 0},
+                            {3,  132, 40, 0}};
+
 
     setlocale(LC_ALL, ""); // this has to do with the character set to use
     initscr();
@@ -195,24 +203,31 @@ void resetWindows() {
 
     /* Clear screen before starting */
     clear();
-    w[0] = newwin(0, 0, 0, 0);
 
     for (int i = 0; i < NUMWINS; i++) {
+        w[i] = newwin(WPOS[i][0], WPOS[i][1], WPOS[i][2], WPOS[i][3]);
+        sw[i] = subwin(w[i], WPOS[i][0] - 2, WPOS[i][1] - 2, WPOS[i][2] + 1, WPOS[i][3] + 1);
+        scrollok(sw[i], TRUE); // allows window to be automatically scrolled
+        wborder(w[i], 0, 0, 0, 0, 0, 0, 0, 0);
         touchwin(w[i]);
         wrefresh(w[i]);
         wrefresh(sw[i]);
     }
 
-    icmd *flags;
 
     flags->noleft = 0;
     flags->noright = 0;
+
+
+
     bzero(flags->rraddr,
           sizeof(flags->rraddr));    /* Right connecting address                                           */
     bzero(flags->lraddr,
           sizeof(flags->rraddr));    /* Left connected address                                             */
     bzero(flags->localaddr,
-          sizeof(flags->rraddr));    /* Local address                                                      */
+          sizeof(flags->rraddr));    /* Local address        */
+
+
     flags->llport = DEFAULT;                   /* left protocol port number                                          */
     flags->rrport = DEFAULT;                   /* right protocol port number                                         */
     flags->dsplr = 1;                           /* display left to right data, default if no display option provided  */
@@ -1026,7 +1041,7 @@ int main(int argc, char *argv[]) {
                                                   &desc, &parentrd, lconn, right, inputDesignation);
 
                                 if (flags->reset == 1) {
-                                    resetWindows();
+                                    resetWindows(flags);
                                     break;
                                 } else {
 
@@ -1189,7 +1204,7 @@ int main(int argc, char *argv[]) {
                                         n = flagsfunction(flags, word2, sizeof(word2), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right, inputDesignation);
                                         inputDesignation = -1;
                                         if (flags->reset == 1) {
-                                            resetWindows();
+                                            resetWindows(flags);
                                             break;
                                         } else {
 
@@ -1294,7 +1309,7 @@ int main(int argc, char *argv[]) {
 
 
                             if(flags->reset == 1) {
-                                resetWindows();
+                                resetWindows(flags);
                                 break;
                             } else {
 
