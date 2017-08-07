@@ -830,6 +830,14 @@ int main(int argc, char *argv[]) {
                                         buf[i] = (char) c;
                                         ++i;
                                         echo();
+                                        if(c == 8){
+                                            noecho();
+                                            nocbreak();
+                                            delch();
+                                            delch();
+                                            cbreak();
+                                            refresh();
+                                        }
 
                                         wprintw(sw[ULW], buf);
                                         update_win(ULW);
@@ -939,8 +947,12 @@ int main(int argc, char *argv[]) {
                             wprintw(sw[BRW], "%d",c);
                             update_win(BRW);
 
-                            if( c >31 && c < 127  || c == 8){
-                                cbuf[i]= (char) c;
+                            if( c >31 && c < 127){
+                                if(c == 8){
+                                    delch();
+                                    delch();
+                                }
+                                buf[i]= (char) c;
                                 i++;
                                 wclrtoeol(sw[CMW]);
                                 update_win(CMW);
@@ -950,13 +962,14 @@ int main(int argc, char *argv[]) {
 
 
                                 /* PROCESS COMMAND HERE, USER COMMAND STORED IN CBUF*/
+
                                 wmove(sw[INW], 0,0);
                                 wclrtoeol(sw[INW]);
                                 update_win(INW);
 
                                 wmove(sw[INW], 0,0);
                                 wclrtoeol(sw[INW]);
-                                wprintw(sw[INW], "command: %s",cbuf);
+                                wprintw(sw[INW], "command: %s",buf);
                                 update_win(INW);
                                 break;
                             }
@@ -974,7 +987,7 @@ int main(int argc, char *argv[]) {
 
                         noecho();
                         if(i == RES_BUF_SIZE){
-                            winwrite(ERW, "cbuf full");
+                            winwrite(ERW, "buf full");
                         }
 
                         wmove(sw[CMW], 0,0);
