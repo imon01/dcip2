@@ -293,7 +293,7 @@ int main(int argc, char *argv[]) {
     /***********************************************/
     /* Use input arguments from loop to set values */
     /***********************************************/
-    int i, n, x, len, ch;
+    int i, n, x, len, ch, r, s;
     int written = 0;
     int maxfd;          /* max descriptor                          */
     int pigopt;         /* piggy position indicating variable      */
@@ -938,6 +938,28 @@ int main(int argc, char *argv[]) {
 //                     }
                         return 1;
 
+                    case KEY_UP:
+                        getyx(curscr , r, s);
+                        s--;
+                        wmove(sw[CMW], r,s);
+                        break;
+                    case KEY_DOWN:
+                        getyx(curscr , r, s);
+                        s++;
+                        wmove(sw[CMW], r,s);
+                        break;
+
+                    case KEY_LEFT:
+                        getyx(curscr , r, s);
+                        r--;
+                        wmove(sw[CMW], r,s);
+                        break;
+                    case KEY_RIGHT:
+                        getyx(curscr , r, s);
+                        r++;
+                        wmove(sw[CMW], r,s);
+                        break;
+
                         /*
                          * Interactive commands
                          */
@@ -984,7 +1006,7 @@ int main(int argc, char *argv[]) {
 
                                 wmove(sw[INW], 0,0);
                                 wclrtoeol(sw[INW]);
-                                wprintw(sw[INW], "command: %s",buf);
+                                wprintw(sw[INW], "command: %s", buf);
                                 update_win(INW);
                                 break;
                             }
