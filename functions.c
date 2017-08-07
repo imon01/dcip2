@@ -131,25 +131,25 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
 
         /* Create a socket */
         if ( (sd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-            perror("socket");
+            nerror("socket");
             return -1;
         }
 
         /* Set socket to resuable*/
         if(setsockopt (sd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(int))== -1){
-            perror("setsockopt");
+            nerror("setsockopt");
             return -1;
         }
 
         /* Bind a local address to the socket */
         if( bind(sd, (struct sockaddr *)&conn, sizeof(conn)) < 0){
-            perror("bind");
+            nerror("bind");
             return -1;
         }
 
         /* Specify size of request queue */
         if (listen(sd, qlen) < 0)  {
-            perror("listen");
+            nerror("listen");
             shutdown(sd, 2);
             return -1;
         }
@@ -168,13 +168,13 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
 
         /* Create a socket. */
         if((sd = socket(AF_INET, SOCK_STREAM, 0))  < 0){
-            perror("socket");
+            nerror("socket");
             return -1;
         }
         //printf("(%hu, %s, %d)\n",  (u_short) port, inet_ntoa(conn.sin_addr), sd );
         /* Connect to remote host*/
         if( (connect(sd, (struct sockaddr * )&conn, sizeof(conn))) < 0) {
-            perror("!connect");
+            nerror("!connect");
             shutdown(sd, 2);
             return -1;
         }
@@ -213,7 +213,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             flags->output =0;
         }
         else{
-            printf("Cant set head piggy output right\n");
+            nerror("Cant set head piggy output right\n");
         }
     }
 
@@ -225,7 +225,8 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             value = 1;
             flags->output = 1;
         }else{
-            printf("Can't set tail piggy output right\n");
+            //printf("Can't set tail piggy output right\n");
+            nerror("Cant set tail piggy output right");
         }
     }
 
@@ -234,9 +235,13 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         value = 1;
         if (flags->output) {
             printf("output = right\n");
+            wprintw(sw[INW], "output = right");
+            update_win(INW);
         }
         else{
-            printf("output = left\n");
+            //printf("output = left\n");
+            wprintw(sw[INW], "output = left");
+            update_win(INW);
         }
     }
 
@@ -249,7 +254,8 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             flags->dsplr = 1;
         }
         else{
-            printf("Cant set dsplr for head piggy\n");
+            nerror("Cant set dsplr for head piggy");
+
         }
     }
 
@@ -262,7 +268,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             flags->dsplr = 0;
         }
         else{
-            printf("Cant set dsprl for tail piggy\n");
+            nerror("Cant set dsprl for tail piggy");
         }
     }
 
@@ -310,19 +316,28 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
     /* */
     if (strncmp(command, "right", len) == 0){
         value = 1;
-        printf("%s:%hu", flags->localaddr, flags->llport);
+        //printf("%s:%hu", flags->localaddr, flags->llport);
+        wprintw(sw[INW], "%s:%hu",flags->localaddr, flags->llport);
+        update_win(INW);
         if(*openrd == 1){
-            printf(":%s:%hu", flags->rraddr, flags->rrport);
+            //printf(":%s:%hu", flags->rraddr, flags->rrport);
+            wprintw(sw[INW], "%s:%hu",flags->localaddr, flags->llport);
+            update_win(INW);
         }
         else{
-            printf(":*:*");
+            //printf(":*:*");
+            wprintw(sw[INW], ":*:*");
+            update_win(INW);
         }
 
         if(*openrd){
-            printf("\nCONNECTED\n");
+            //printf("\nCONNECTED\n");
+            wprintw(sw[INW], ":*:*");
+            update_win(INW);
         }
         else{
-            printf("\nDISCONNECTED\n");
+            //printf("\nDISCONNECTED\n");
+            nerror("DISCONNECTED");
         }
     }
 
@@ -333,7 +348,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             flags->output =0;
         }
         else{
-            printf("Cant set head piggy output right\n");
+            nerror("Cant set head piggy output right");
         }
     }
     if (strncmp(command, "reset", len) == 0) {
@@ -346,19 +361,26 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
     if (strncmp(command, "left", len) == 0){
         value = 1;
         if( *openld ){
-            printf("%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);
+            //printf("%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);
+            wprintw(sw[INW], "%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);
+            update_win(INW);
         }
         else{
             printf("*:*");
+            wprintw(sw[INW], "*:*");
+            update_win(INW);
+
         }
         printf(":%s:%hu", flags->localaddr, flags->llport);
 
 
         if( *openld){
-            printf("\nLISTENING\n");
+            wprintw(sw[INW], "LISTENING");
+            update_win(INW);
         }
         else{
-            printf("\nDISCONNECTED\n");
+            wprintw(sw[INW], "DISCONNECTED");
+            update_win(INW);
         }
     }
 
@@ -393,12 +415,12 @@ char fileRead(const char *filename, char *output[255]) {
             *delim = " \n";
 
     if (!file) {  /* validate file open for reading */
-        fprintf (stderr, "error: file open failed '%s'.\n", filename);
+        nerror("error: file open failed");
         return 1;
     }
 
     if (!fgets (buf, 255, file)) {  /* read one line from file */
-        fprintf (stderr, "error: file read failed.\n");
+        nerror("error: file read failed");
         return 1;
     }
 
