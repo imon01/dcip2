@@ -831,9 +831,11 @@ int main(int argc, char *argv[]) {
 
                                     wclrtoeol(sw[INW]);
                                     putchar(c);
-                                    buf[i] = (char) c;
-                                    ++i;
+                                    buf[0] = (char) c;    
+									buf[1] = '\0';									
                                     echo();
+									
+									/* Requires further work to ignore characters not in printable range */
                                     if(c == 8){
                                         noecho();
                                         nocbreak();
@@ -846,8 +848,7 @@ int main(int argc, char *argv[]) {
 
                                     wprintw(sw[ULW], buf);
                                     update_win(ULW);
-                                    buf[i] = '\0';
-                                    i = 0;
+                                                                        
                                     /* Preconditions for sending data to the right, output == 1 */
 									
 									/* ``w */
@@ -941,11 +942,14 @@ int main(int argc, char *argv[]) {
                             wprintw(sw[BRW], "%d",c);
                             update_win(BRW);
 
+							
+							/* Needs to be updated, requires addition conditional variable */
+							if(c == 8){
+								delch();
+								delch();
+							}							
+
                             if( c >31 && c < 127){
-                                if(c == 8){
-                                    delch();
-                                    delch();
-                                }
                                 cbuf[i]= (char) c;
                                 i++;
                                 wclrtoeol(sw[CMW]);
@@ -1456,7 +1460,7 @@ int main(int argc, char *argv[]) {
             */
             /* If dsplr is set we print data coming frm the left*/
             if (flags->dsplr) {
-                //wmove(ULW, 0,0);
+                wmove(ULW, 0,0);
                 wprintw(sw[BRW], "%s",buf);
                 update_win(BRW);
             }
