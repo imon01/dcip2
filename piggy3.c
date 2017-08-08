@@ -700,6 +700,7 @@ int main(int argc, char *argv[]) {
     /*********************************/
     /*  Piggy setup                  */
     /*********************************/
+    /* pigspo*/
     switch (flags->position) {
 
         /*
@@ -778,8 +779,8 @@ int main(int argc, char *argv[]) {
     /***************************************************/
     /* Init windows cursor postion                     */
     /***************************************************/	
-    yul = 0; xul = 0;                           /* Top left window position variables		*/
-    yur = 0; xur = 0;			    /* Top right window position variables		*/
+    yul = 0; xul = 0;				/* Top left window position variables		*/
+    yur = 0; xur = 0;				/* Top right window position variables		*/
     ybl = 0; xbl = 0;				/* Bottom left window position variables	*/
     ybr = 0; xbr = 0;				/* Bottom right window position variables	*/
     getyx(sw[ULW], yul, xul);
@@ -854,11 +855,12 @@ int main(int argc, char *argv[]) {
 
 
                                 if (c != 27) {
-                                    if(c == KEY_ENTER){
+                                    
+                                    /*  */
+                                    if(c == 13){
                                         yul++;
-                                        xul = 0;                                        
-                                    }else{
-                                        getyx(sw[ULW], yul, xul);
+                                        xul = 0;
+                                        wmove(sw[ULW], yul, 0);
                                     }
 
                                     wclrtoeol(sw[INW]);
@@ -883,10 +885,10 @@ int main(int argc, char *argv[]) {
                                     /* Preconditions for sending data to the right, output == 1 */
                                     /* Data should be displayed in URW window*/
                                     /* `w */
-                                    if (flags->output && openrd) {
+                                    if (flags->output && openrd) {                                        
                                         n = send(parentrd, buf, sizeof(buf), 0);
-                                        wmove(sw[ULW], yul, xul);
-                                        wprintw(sw[ULW], "%c", c);
+                                        
+                                        //bzero(buf, sizeof(buf));
 
                                         if (n < 0) {
                                             nerror("right send error");
@@ -1489,7 +1491,7 @@ int main(int argc, char *argv[]) {
             /*`q*/
             if (flags->dsplr ){
                 winwrite(BLW, "incoming data");
-                //getyx(sw[ULW], yul, xul);                
+                getyx(sw[ULW], yul, xul);                
                 if(buf[0]== KEY_ENTER){
                     yul++;
                     xul= 0;
@@ -1497,7 +1499,6 @@ int main(int argc, char *argv[]) {
                 wmove(sw[ULW], yul, xul);
                 wprintw(sw[ULW], "%c",buf[0]);
                 update_win(ULW);
-
             }
 
             /* Loop data right if set*/
@@ -1560,7 +1561,7 @@ int main(int argc, char *argv[]) {
         }
 
         /*****************************************************************/
-        /* RIGHT SIDE DESCRIPTROR (find @tag: RRD)                       */
+        /* RIGHT SIDE DESCRIPTROR (find @tag: RDD)                       */
         /*****************************************************************/
 
         /*
