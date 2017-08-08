@@ -295,7 +295,7 @@ static struct option long_options[] =
 *
 *
 *Returns:
-*       Nothing of relevence to program specification
+*       None, integer
 *
 */
 int main(int argc, char *argv[]) {
@@ -306,23 +306,31 @@ int main(int argc, char *argv[]) {
     /***************************************************/
     int i, n, x, len, ch;
     int written = 0;
-    int maxfd;          /* max descriptor                          */
-    int pigopt;         /* piggy position indicating variable      */
-    int indexptr;       /* generic ponter for getopt_long_only API */
-    int desc = -1;      /* left accepted descriptor                */
-    int parentrd = -1;  /* main left  descriptors                  */
-    int parentld = -1;  /* main right descriptors                  */
-    char errorstr[32];
-    char buf[MAXSIZE];  /* buffer for string the server sends      */
+    int maxfd;         		 	/* Max descriptor                          */
+    int pigopt;        		 	/* Piggy position indicating variable      */
+    int indexptr;       		/* Generic ponter for getopt_long_only API */
+    int desc = -1;     			/* Left accepted descriptor                */
+    int parentrd = -1; 			/* Main left  descriptors                  */
+    int parentld = -1;  		/* Main right descriptors                  */
+    char errorstr[32];			/* Error buf							   */
+    char buf[MAXSIZE];  		/* Buffer for string the server sends      */
     char *output[MAXSIZE];
     char cbuf[RES_BUF_SIZE];
 	
 	
+	/***************************************************/
+	/* Windows cursor postions 						   */
+	/***************************************************/	
+	int yul, xul;				/* Top left window position variables		*/
+	int yur, xur;				/* Top right window position variables		*/
+	int ybl, xbl;				/* Bottom left window position variables	*/
+	int ybr, xbr;				/* Bottom right window position variables	*/
+	
     /***************************************************/
     /* Control flow variables                          */
     /***************************************************/
-    int openrd = 0;     /* (1) indicates open right connection, otherwise (0)*/
-    int openld = 0;     /* (1) indicates open left  connection, otherwise (0)*/
+    int openrd = 0;     		/* (1) indicates open right connection, otherwise (0)*/
+    int openld = 0;     		/* (1) indicates open left  connection, otherwise (0)*/
 
 
     /***************************************************/
@@ -380,7 +388,7 @@ int main(int argc, char *argv[]) {
     /***************************************************/
     /* Setup ncurses for multiple windows              */
     /***************************************************/
-    setlocale(LC_ALL, ""); // this has to do with the character set to use
+    setlocale(LC_ALL, ""); 		/* Use to local character set*/
     initscr();
     cbreak();
     noecho();
@@ -1469,8 +1477,10 @@ int main(int argc, char *argv[]) {
             /* If dsplr is set we print data coming fr0m the left*/
 			/*`q*/
             if (flags->dsplr > 0) {                
-				
-                wmove(sw[ULW],
+				getxy(sw[ULW], yul, xul);				
+                wmove(sw[ULW], yul, xul);
+				addch(buf[0]);
+				update_win(ULW);
             }
 
             /* Loop data right if set*/
