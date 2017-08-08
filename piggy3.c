@@ -1444,6 +1444,7 @@ int main(int argc, char *argv[]) {
             n = recv(desc, buf, sizeof(buf), 0);
 			
 			winwrite(BLW, "incoming data");
+			winwrite(ULW, buf);  
             if (n < 0) {
                 nerror("recv left error ");
                 break;
