@@ -1428,7 +1428,8 @@ int main(int argc, char *argv[]) {
         if (FD_ISSET(parentld, &readset)) {
             len = sizeof(lconn);
             desc = accept(parentld, (struct sockaddr *) &lconn, &len);
-
+			yul = 0;
+			xul = 0;
             if (desc < 0) {
                 nerror("left accept error ");
                 endwin();
@@ -1460,7 +1461,7 @@ int main(int argc, char *argv[]) {
             bzero(buf, sizeof(buf));
             n = recv(desc, buf, sizeof(buf), 0);
 			
-			winwrite(BLW, "incoming data");
+			
 			
             if (n < 0) {
                 nerror("recv left error ");
@@ -1479,10 +1480,11 @@ int main(int argc, char *argv[]) {
             */
             /* If dsplr is set we print data coming fr0m the left*/
 			/*`q*/
-            if (flags->dsplr ) {                
+            if (flags->dsplr ){
+				winwrite(BLW, "incoming data");
 				getyx(sw[ULW], yul, xul);				
                 wmove(sw[ULW], yul, xul);
-				addch(buf[0]);
+				wprintw(sw[ULW], "%s",buf[0]);
 				update_win(ULW);
             }
 
