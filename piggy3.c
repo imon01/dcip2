@@ -781,10 +781,10 @@ int main(int argc, char *argv[]) {
     yur = 0; xur = 0;				/* Top right window position variables		*/
     ybl = 0; xbl = 0;				/* Bottom left window position variables	*/
     ybr = 0; xbr = 0;				/* Bottom right window position variables	*/
-    getyx(yul, xul);
-    getyx(yur, xur);
-    getyx(ybl, xbl);
-    getyx(yr, xbr);
+    getyx(ULW, yul, xul);
+    getyx(URW, yur, xur);
+    getyx(BLW, ybl, xbl);
+    getyx(BRW, yr, xbr);
 
     /************************************************************/
     /************************************************************/
