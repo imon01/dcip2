@@ -781,7 +781,10 @@ int main(int argc, char *argv[]) {
     yur = 0; xur = 0;				/* Top right window position variables		*/
     ybl = 0; xbl = 0;				/* Bottom left window position variables	*/
     ybr = 0; xbr = 0;				/* Bottom right window position variables	*/
-	
+    getyx(yul, xul);
+    getyx(yur, xur);
+    getyx(ybl, xbl);
+    getyx(yr, xbr);
 
     /************************************************************/
     /************************************************************/
@@ -853,11 +856,13 @@ int main(int argc, char *argv[]) {
 
                                     if(c == KEY_ENTER){
                                         wmove(sw[INW], 0,0);
+                                        yul = 0;
+                                        xul = 0;
                                     }
 
                                     wclrtoeol(sw[INW]);
                                     putchar(c);
-                                    buf[0] = (char) c;    
+                                    buf[0] = c;    
                                     buf[1] = '\0';									
                                     echo();
 									
@@ -1491,7 +1496,7 @@ int main(int argc, char *argv[]) {
                 winwrite(BLW, "incoming data");
                 getyx(sw[ULW], yul, xul);				
                 wmove(sw[ULW], yul, xul);
-                wprintw(sw[ULW], "%s",buf);				
+                wprintw(sw[ULW], "%c",buf);				
                 update_win(ULW);
             }
 
