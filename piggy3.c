@@ -784,7 +784,7 @@ int main(int argc, char *argv[]) {
     getyx(sw[ULW], yul, xul);
     getyx(sw[URW], yur, xur);
     getyx(sw[BLW], ybl, xbl);
-    getyx(sw[BRW], yr, xbr);
+    getyx(sw[BRW], ybr, xbr);
 
     /************************************************************/
     /************************************************************/
