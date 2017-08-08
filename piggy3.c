@@ -311,7 +311,7 @@ int main(int argc, char *argv[]) {
     int desc = -1;     			/* Left accepted descriptor                */
     int parentrd = -1; 			/* Main left  descriptors                  */
     int parentld = -1;  		/* Main right descriptors                  */
-    char errorstr[32];			/* Error buf							   */
+    char errorstr[32];			/* Error buf                               */
     char buf[MAXSIZE];  		/* Buffer for string the server sends      */
     char *output[MAXSIZE];
     char cbuf[RES_BUF_SIZE];
