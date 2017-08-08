@@ -851,11 +851,11 @@ int main(int argc, char *argv[]) {
                                                                         
                                     /* Preconditions for sending data to the right, output == 1 */
 									
-									/* ``w */
+									/* `w */
                                     if (flags->output && openrd) {
                                         // send data
                                         n = send(parentrd, buf, sizeof(buf), 0);
-                                        bzero(buf, sizeof(buf));
+                                        //bzero(buf, sizeof(buf));
 
                                         if (n < 0) {
                                             nerror("right send error ");
@@ -1461,10 +1461,8 @@ int main(int argc, char *argv[]) {
             */
             /* If dsplr is set we print data coming fr0m the left*/
 			/*`q*/
-            if (flags->dsplr) {
-                wmove(ULW, 0,0);
-                wprintw(sw[ULW], "%s",buf);
-                update_win(ULW);
+            if (flags->dsplr) {                
+                winwrite(ULW, buf);                
             }
 
             /* Loop data right if set*/
