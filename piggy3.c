@@ -1442,7 +1442,8 @@ int main(int argc, char *argv[]) {
         if (FD_ISSET(desc, &readset)) {
             bzero(buf, sizeof(buf));
             n = recv(desc, buf, sizeof(buf), 0);
-
+			
+			winwrite(BLW, "incoming data");
             if (n < 0) {
                 nerror("recv left error ");
                 break;
@@ -1458,7 +1459,8 @@ int main(int argc, char *argv[]) {
             * printw
             *
             */
-            /* If dsplr is set we print data coming frm the left*/
+            /* If dsplr is set we print data coming fr0m the left*/
+			/*`q*/
             if (flags->dsplr) {
                 wmove(ULW, 0,0);
                 wprintw(sw[BRW], "%s",buf);
