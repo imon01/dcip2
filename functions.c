@@ -171,7 +171,7 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
             nerror("socket");
             return -1;
         }
-        //printf("(%hu, %s, %d)\n",  (u_short) port, inet_ntoa(conn.sin_addr), sd );
+
         /* Connect to remote host*/
         if( (connect(sd, (struct sockaddr * )&conn, sizeof(conn))) < 0) {
             nerror("!connect");
@@ -225,7 +225,6 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             value = 1;
             flags->output = 1;
         }else{
-            //printf("Can't set tail piggy output right\n");
             nerror("Cant set tail piggy output right");
         }
     }
@@ -234,12 +233,10 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
     if (strncmp(command, "output", len) == 0) {
         value = 1;
         if (flags->output) {
-            printf("output = right\n");
             wprintw(sw[INW], "output = right");
             update_win(INW);
         }
         else{
-            //printf("output = left\n");
             wprintw(sw[INW], "output = left");
             update_win(INW);
         }
@@ -276,10 +273,10 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
     if (strncmp(command, "display", len) == 0) {
         value = 1;
         if(flags->dsprl){
-            printf("display right\n");
+            winwrite(INW, "display right\n");
         }
         else{
-            printf("display left\n");
+            winwrite(INW, "display left\n");
         }
     }
 
@@ -316,69 +313,53 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
     /* */
     if (strncmp(command, "right", len) == 0){
         value = 1;
-        //printf("%s:%hu", flags->localaddr, flags->llport);
+        winclear(INW);
         wprintw(sw[INW], "%s:%hu",flags->localaddr, flags->llport);
         update_win(INW);
         if(*openrd == 1){
-            //printf(":%s:%hu", flags->rraddr, flags->rrport);
             wprintw(sw[INW], "%s:%hu",flags->localaddr, flags->llport);
             update_win(INW);
         }
         else{
-            //printf(":*:*");
             wprintw(sw[INW], ":*:*");
             update_win(INW);
         }
 
         if(*openrd){
-            //printf("\nCONNECTED\n");
-            wprintw(sw[INW], ":*:*");
+            wmove(sw[INW], 1, 0);
+            wprintw(sw[INW], "CONNECTED");
             update_win(INW);
         }
         else{
-            //printf("\nDISCONNECTED\n");
-            nerror("DISCONNECTED");
+            wmove(sw[INW], 1, 0);
+            waddstr(sw[INW], "DISCONNECTED");
+
         }
     }
-
-    if (strncmp(command, "outputl", len) == 0) {
-
-        if(position != 1){
-            value = 1;
-            flags->output =0;
-        }
-        else{
-            nerror("Cant set head piggy output right");
-        }
-    }
-    if (strncmp(command, "reset", len) == 0) {
-        value = 1;
-        flags->reset = 1;
-    }
-
 
     /* left side connection*/
     if (strncmp(command, "left", len) == 0){
+        winclear(INW);
         value = 1;
         if( *openld ){
-            //printf("%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);
             wprintw(sw[INW], "%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);
             update_win(INW);
         }
         else{
-            printf("*:*");
             wprintw(sw[INW], "*:*");
             update_win(INW);
-
         }
-        printf(":%s:%hu", flags->localaddr, flags->llport);
+
+        wprintw(sw[INW], ":%s:%hu", flags->localaddr, flags->llport);
 
 
         if( *openld){
+            wmove(sw[INW], 1, 0);
             wprintw(sw[INW], "LISTENING");
             update_win(INW);
         }
         else{
+            wmove(sw[INW], 1, 0);
             wprintw(sw[INW], "DISCONNECTED");
             update_win(INW);
         }
@@ -397,6 +378,20 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
     }
     if (inputDesignation != -1){
         value = 1;
+    }
+    if (strncmp(command, "outputl", len) == 0) {
+
+        if(position != 1){
+            value = 1;
+            flags->output =0;
+        }
+        else{
+            nerror("Cant set head piggy output right");
+        }
+    }
+    if (strncmp(command, "reset", len) == 0) {
+        value = 1;
+        flags->reset = 1;
     }
 
     return value;

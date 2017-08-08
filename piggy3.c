@@ -254,6 +254,7 @@ void winclear(int win){
     update_win(win);
 }
 const char *writtenInputs[] = {
+<<<<<<< HEAD
         "connectl", 
         "connectr", 
         "listenl", 
@@ -264,6 +265,18 @@ const char *writtenInputs[] = {
         "rlport", 
         "lladdr", 
         "rraddr"    
+=======
+        "connectl",
+        "connectr",
+        "listenl",
+        "listenr",
+        "llport",
+        "rrport",
+        "lrport",
+        "rlport",
+        "lladdr",
+        "rraddr"
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
 };
 
 static struct option long_options[] =
@@ -791,15 +804,27 @@ int main(int argc, char *argv[]) {
         *   durring its use.
         */
 
+<<<<<<< HEAD
         
         if (FD_ISSET(0, &readset)) {
             
             
+=======
+
+        if (FD_ISSET(0, &readset)) {
+            wmove(sw[CMW], 0, 0);
+            wclrtoeol(sw[CMW]);
+
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
             while (1) {
                 noecho();
                 c = wgetch(sw[CMW]);
                 switch (c) {
+<<<<<<< HEAD
                     
+=======
+
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                     /*******************************/
                     /* Insert mode                 */
                     /*******************************/
@@ -818,26 +843,27 @@ int main(int argc, char *argv[]) {
                                 c = wgetch(sw[INW]);
 
 
-                                    if (c != 27) {
+                                if (c != 27) {
 
-                                        if(c == KEY_ENTER){
-                                            wmove(sw[INW], 0,0);
-                                        }
+                                    if(c == KEY_ENTER){
+                                        wmove(sw[INW], 0,0);
+                                    }
 
-                                        wclrtoeol(sw[INW]);
-                                        putchar(c);
-                                        buf[i] = (char) c;
-                                        ++i;
-                                        echo();
-                                        if(c == 8){
-                                            noecho();
-                                            nocbreak();
-                                            delch();
-                                            delch();
-                                            cbreak();
-                                            refresh();
-                                        }
+                                    wclrtoeol(sw[INW]);
+                                    putchar(c);
+                                    buf[i] = (char) c;
+                                    ++i;
+                                    echo();
+                                    if(c == 8){
+                                        noecho();
+                                        nocbreak();
+                                        delch();
+                                        delch();
+                                        cbreak();
+                                        refresh();
+                                    }
 
+<<<<<<< HEAD
                                         wprintw(sw[ULW], buf);
                                         update_win(ULW);
                                         buf[i] = '\0';
@@ -847,58 +873,75 @@ int main(int argc, char *argv[]) {
                                             // send data
                                             n = send(parentrd, buf, sizeof(buf), 0);
                                             bzero(buf, sizeof(buf));
+=======
+                                    wprintw(sw[ULW], buf);
+                                    update_win(ULW);
+                                    buf[i] = '\0';
+                                    i = 0;
+                                    /* Preconditions for sending data to the right, output == 1 */
+                                    if (flags->output && openrd) {
+                                        // send data
+                                        n = send(parentrd, buf, sizeof(buf), 0);
+                                        bzero(buf, sizeof(buf));
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
 
-                                            if (n < 0) {
-                                                nerror("right send error ");
-                                                break;
-                                            }
-                                            if (n == 0) {
-                                                /* Here, if persr is set, we will attempt*/
-                                                /*  reestablish the connection           */
-                                                flags->reconl = 1;
-                                                break;
-                                            }
+                                        if (n < 0) {
+                                            nerror("right send error ");
+                                            break;
                                         }
+                                        if (n == 0) {
+                                            /* Here, if persr is set, we will attempt*/
+                                            /*  reestablish the connection           */
+                                            flags->reconl = 1;
+                                            break;
+                                        }
+                                    }
 
-                                            /* Preconditions for sending data to the left, output == 0 */
-                                        else if (!flags->output && openld) {
-                                            n = send(desc, buf, sizeof(buf), 0);
-                                            bzero(buf, sizeof(buf));
+                                        /* Preconditions for sending data to the left, output == 0 */
+                                    else if (!flags->output && openld) {
+                                        n = send(desc, buf, sizeof(buf), 0);
+                                        bzero(buf, sizeof(buf));
 
-                                            if (n < 0) {
-                                                nerror("left send error ");
-                                                break;
-                                            }
-                                            if (n == 0 && flags->persl) {
-                                                break;
-                                            }
-                                        } else {
-                                            if (!openld & !flags->output) {
-                                                nerror("left connection closed ");
-                                            }
-                                            if (!openrd & flags->output == 1) {
-                                                nerror("left connection closed ");
-                                            }
+                                        if (n < 0) {
+                                            nerror("left send error ");
+                                            break;
+                                        }
+                                        if (n == 0 && flags->persl) {
+                                            break;
                                         }
                                     } else {
-                                        waddstr(sw[INW], "press : to enter command mode, or i to insert or q to quit");
-                                        update_win(INW);
-                                        noecho();
-                                        wmove(sw[INW], 0,0);
-                                        wclrtoeol(sw[INW]);
-                                        update_win(INW);
-                                        break;
+                                        if (!openld & !flags->output) {
+                                            nerror("left connection closed ");
+                                        }
+                                        if (!openrd & flags->output == 1) {
+                                            nerror("left connection closed ");
+                                        }
                                     }
-                                }/* End input loop*/
-                            }/* End of at least one socket is open*/
+                                } else {
+                                    waddstr(sw[INW], "press : to enter command mode, or i to insert or q to quit");
+                                    update_win(INW);
+                                    noecho();
+                                    wmove(sw[INW], 0,0);
+                                    wclrtoeol(sw[INW]);
+                                    update_win(INW);
+                                    break;
+                                }
+                            }/* End input loop*/
+                        }/* End of at least one socket is open*/
                         /*} else {
                             nerror("no open sockets ");
                         }*/
                         break;
 
+<<<<<<< HEAD
                     /*******************************/
                     /*  Quitting                   */
                     /*******************************/
+=======
+                        /*******************************/
+                        /*  Quitting                   */
+                        /*******************************/
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                     case 113:
                         bzero(buf, sizeof(buf));
                         waddstr(sw[5], "exiting ");
@@ -907,6 +950,7 @@ int main(int argc, char *argv[]) {
 
                         return 1;
 
+<<<<<<< HEAD
                     /*******************************/
                     /* Interactive commands        */
                     /*******************************/
@@ -931,6 +975,32 @@ int main(int argc, char *argv[]) {
                             wmove(sw[BRW], 0,0);
                             wclrtoeol(sw[BRW]);
                             
+=======
+                        /*******************************/
+                        /* Interactive commands        */
+                        /*******************************/
+                    default:
+                        bzero(cbuf, sizeof(cbuf));
+
+                        /*`1*/
+                        winwrite(CMW, ":");
+                        i = 0;
+
+                        echo();
+                        nocbreak;
+
+
+                        if( c >31 && c < 127  || c ==8){
+                            waddch(sw[CMW], c);
+
+                        }
+                        update_win(CMW);
+
+                        while (1) {
+                            wmove(sw[BRW], 0,0);
+                            wclrtoeol(sw[BRW]);
+
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                             wprintw(sw[BRW], "%d",c);
                             update_win(BRW);
 
@@ -944,8 +1014,13 @@ int main(int argc, char *argv[]) {
                                 wclrtoeol(sw[CMW]);
                                 update_win(CMW);
                             }
+<<<<<<< HEAD
                             
                             /* Enter has been hit*/
+=======
+
+                                /* Enter has been hit*/
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                             else if(c == 13){
 
 
@@ -954,11 +1029,19 @@ int main(int argc, char *argv[]) {
                                 wmove(sw[URW], 0,0);
                                 wclrtoeol(sw[URW]);
                                 update_win(URW);
+<<<<<<< HEAD
                                 
                                 wmove(sw[URW], 0,0);
                                 wclrtoeol(sw[URW]);
                                 wprintw(sw[URW], "cbuf: %s",cbuf );
                                 update_win(URW);                                
+=======
+
+                                wmove(sw[URW], 0,0);
+                                wclrtoeol(sw[URW]);
+                                wprintw(sw[URW], "cbuf: %s",cbuf );
+                                update_win(URW);
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                                 break;
                             }
                             else{
@@ -968,7 +1051,11 @@ int main(int argc, char *argv[]) {
                                 update_win(CMW);
                                 winwrite(CMW, "not a printable character");
                                 wclrtoeol(sw[CMW]);
+<<<<<<< HEAD
                                 update_win(CMW);                                
+=======
+                                update_win(CMW);
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                             }
                             c = wgetch(sw[CMW]);
                         }
@@ -983,11 +1070,19 @@ int main(int argc, char *argv[]) {
                         wclrtoeol(sw[CMW]);
                         update_win(CMW);
                         noecho();
+<<<<<<< HEAD
                         
 
                         inputLength = strlen(buf);
                         inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
                         
+=======
+
+
+                        inputLength = strlen(buf);
+                        inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
+
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                         for(int l = 0; l < 9; l++) {
                             checker = strstr(inputCheck, writtenInputs[l]);
                             if (checker == inputCheck) {
@@ -1179,7 +1274,11 @@ int main(int argc, char *argv[]) {
                                         if (flags->reset == 1) {
                                             resetWindows();
                                             break;
+<<<<<<< HEAD
                                         } 
+=======
+                                        }
+>>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                                         else {
 
                                             switch (n) {
