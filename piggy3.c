@@ -301,9 +301,9 @@ static struct option long_options[] =
 int main(int argc, char *argv[]) {
 
 
-    /***********************************************/
-    /* Use input arguments from loop to set values */
-    /***********************************************/
+    /***************************************************/
+    /* Use input arguments from loop to set values 	   */
+    /***************************************************/
     int i, n, x, len, ch;
     int written = 0;
     int maxfd;          /* max descriptor                          */
@@ -316,16 +316,18 @@ int main(int argc, char *argv[]) {
     char buf[MAXSIZE];  /* buffer for string the server sends      */
     char *output[MAXSIZE];
     char cbuf[RES_BUF_SIZE];
-    /***********************************************/
-    /* Control flow variables                      */
-    /***********************************************/
+	
+	
+    /***************************************************/
+    /* Control flow variables                          */
+    /***************************************************/
     int openrd = 0;     /* (1) indicates open right connection, otherwise (0)*/
     int openld = 0;     /* (1) indicates open left  connection, otherwise (0)*/
 
 
-    /***********************************************/
-    /* Remote and host information variables       */
-    /***********************************************/
+    /***************************************************/
+    /* Remote and host information variables           */
+    /***************************************************/
     struct addrinfo hints, *infoptr; /* used for getting connecting right piggy if give DNS*/
     struct addrinfo *p;
     struct in_addr ip;
@@ -334,15 +336,21 @@ int main(int argc, char *argv[]) {
     char hostname[256];
 
 
-    /***********************************************/
-    /* File Descriptor sets                         */
-    /***********************************************/
+    /***************************************************/
+    /* File Descriptor sets                            */
+    /***************************************************/
     fd_set readset, masterset;
 
+	
+    /***************************************************/
+    /* Init descriptor set           				   */
+    /***************************************************/
+    FD_ZERO(&masterset);
+    FD_SET(0, &masterset);	
 
-    /***********************************************/
-    /* File related variables                      */
-    /***********************************************/
+    /***************************************************/
+    /* File related variables                          */
+    /***************************************************/
     char *inputCheck = buf;
     char *checker = NULL;
     int readLines;
@@ -353,47 +361,25 @@ int main(int argc, char *argv[]) {
     int inputLength = 0;
     char *inputCopy;
 
-    /***********************************************/
-    /* Ncurses windows variables                   */
-    /***********************************************/
-
+	
+    /***************************************************/
+    /* Ncurses windows variables                   	   */
+    /***************************************************/
     int a, c;
     char response[RES_BUF_SIZE];
-    int WPOS[NUMWINS][4] = {{16, 66,  0,  0},
-                            {16, 66,  0,  66},
-                            {16, 66,  16, 0},
-                            {16, 66,  16, 66},
-                            {3,  132, 32, 0},
-                            {5,  132, 35, 0},
-                            {3,  132, 40, 0}};
+    int WPOS[NUMWINS][4] = {
+		{16, 66,  0,  0},
+        {16, 66,  0,  66},
+		{16, 66,  16, 0},
+		{16, 66,  16, 66},
+		{3,  132, 32, 0},
+		{5,  132, 35, 0},
+		{3,  132, 40, 0}
+	};
 
-
-
-    /***********************************************/
-    /*  Flag variables init_init                   */
-    /***********************************************/
-    icmd *flags;
-    flags = malloc(sizeof(icmd));
-
-    flags->noleft = 0;
-    flags->noright = 0;
-    bzero(flags->rraddr, sizeof(flags->rraddr));    /* Right connecting address                                           */
-    bzero(flags->lraddr, sizeof(flags->rraddr));    /* Left connected address                                             */
-    bzero(flags->localaddr, sizeof(flags->rraddr));    /* Local address                                                      */
-    flags->llport = DEFAULT;                   /* left protocol port number                                          */
-    flags->rrport = DEFAULT;                   /* right protocol port number                                         */
-    flags->dsplr = 1;                           /* display left to right data, default if no display option provided  */
-    flags->dsprl = 0;                           /* display right  to left data                                        */
-    flags->loopr = 0;                           /* take data that comes from the left and send it back to the left    */
-    flags->loopl = 0;                           /* take data that comes in from the right and send back to the right  */
-    flags->output = 1;
-    flags->reset = 0;
-
-
-
-    /***********************************************/
-    /* setup ncurses for multiple windows          */
-    /***********************************************/
+    /***************************************************/
+    /* Setup ncurses for multiple windows              */
+    /***************************************************/
     setlocale(LC_ALL, ""); // this has to do with the character set to use
     initscr();
     cbreak();
@@ -406,7 +392,9 @@ int main(int argc, char *argv[]) {
     clear();
     w[0] = newwin(0, 0, 0, 0);
 
-
+	/****************************************************/
+	/* Check for correct terminal size, 132x43 required */
+	/***************************************************/
     if (LINES != 43 || COLS != 132) {
         move(0, 0);
         addstr("Piggy3 requires a screen size of 132 columns and 43 rows");
@@ -420,9 +408,12 @@ int main(int argc, char *argv[]) {
         endwin();
         exit(EXIT_FAILURE);
     }
-
-    /* create the 7 windows and the seven subwindows*/
-    for (i = 0; i < NUMWINS; i++) {
+	
+	
+	/***************************************************/
+    /* Crseate the 7 windows and the seven subwindows  */
+    /***************************************************/
+	for (i = 0; i < NUMWINS; i++) {
         w[i] = newwin(WPOS[i][0], WPOS[i][1], WPOS[i][2], WPOS[i][3]);
         sw[i] = subwin(w[i], WPOS[i][0] - 2, WPOS[i][1] - 2, WPOS[i][2] + 1, WPOS[i][3] + 1);
         scrollok(sw[i], TRUE); // allows window to be automatically scrolled
@@ -447,7 +438,27 @@ int main(int argc, char *argv[]) {
     for (i = 4; i < NUMWINS; i++) {
         update_win(i);
     }
+	
+	
+    /***********************************************/
+    /*  Flag variables init_init                   */
+    /***********************************************/
+    icmd *flags;
+    flags = malloc(sizeof(icmd));
 
+    flags->noleft = 0;
+    flags->noright = 0;
+    bzero(flags->rraddr, sizeof(flags->rraddr));    /* Right connecting address                                           */
+    bzero(flags->lraddr, sizeof(flags->rraddr));    /* Left connected address                                             */
+    bzero(flags->localaddr, sizeof(flags->rraddr));    /* Local address                                                      */
+    flags->llport = DEFAULT;                   /* left protocol port number                                          */
+    flags->rrport = DEFAULT;                   /* right protocol port number                                         */
+    flags->dsplr = 1;                           /* display left to right data, default if no display option provided  */
+    flags->dsprl = 0;                           /* display right  to left data                                        */
+    flags->loopr = 0;                           /* take data that comes from the left and send it back to the left    */
+    flags->loopl = 0;                           /* take data that comes in from the right and send back to the right  */
+    flags->output = 1;
+    flags->reset = 0;
 
 
     /*********************************/
@@ -674,11 +685,6 @@ int main(int argc, char *argv[]) {
     strcpy(flags->localaddr, inet_ntoa(ip));
 
 
-    /*********************************/
-    /* Init descriptor set           */
-    /*********************************/
-    FD_ZERO(&masterset);
-    FD_SET(0, &masterset);
 
 
     /*********************************/
@@ -1444,7 +1450,7 @@ int main(int argc, char *argv[]) {
             n = recv(desc, buf, sizeof(buf), 0);
 			
 			winwrite(BLW, "incoming data");
-			winwrite(ULW, buf);  
+			
             if (n < 0) {
                 nerror("recv left error ");
                 break;
@@ -1462,8 +1468,9 @@ int main(int argc, char *argv[]) {
             */
             /* If dsplr is set we print data coming fr0m the left*/
 			/*`q*/
-            if (flags->dsplr) {                
-                winwrite(ULW, buf);                
+            if (flags->dsplr > 0) {                
+				
+                wmove(sw[ULW],
             }
 
             /* Loop data right if set*/
