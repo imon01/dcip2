@@ -1477,7 +1477,7 @@ int main(int argc, char *argv[]) {
             /* If dsplr is set we print data coming fr0m the left*/
 			/*`q*/
             if (flags->dsplr > 0) {                
-				getxy(sw[ULW], yul, xul);				
+				getyx(sw[ULW], yul, xul);				
                 wmove(sw[ULW], yul, xul);
 				addch(buf[0]);
 				update_win(ULW);
