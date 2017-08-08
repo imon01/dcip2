@@ -650,19 +650,24 @@ int main(int argc, char *argv[]) {
         GUIshutdown(response);
         return -1;
     }
+	
+	
+	/* Head piggy, exit if dsplr and noleft*/
+	if(flags->noleft && flags->dsplr){
+		nerror("dsplr and noleft cannot both be set...");
+		GUIshutdown(response);
+		return -1;
+	}
+	
+	
+	/* Tail piggy, exit if dsprl and noright*/
+	if(flags->noright && flags->dsprl){
+		nerror("dsprl and noright cannot both be set...");
+		GUIshutdown(response);
+		return -1;
+	}
 
-    /* Head piggy, set dsprl and clear dsplr*/
-    if (flags->noleft == 1) {
-        flags->dsplr = 0;
-        flags->dsprl = 1;
-    }
-
-    /* Tail piggy case, set dsplr flag and clear dsprl*/
-    if (flags->noright == 2) {
-        flags->dsplr == 2;
-        flags->dsprl = 0;
-    }
-
+	
     /* A position < 1 implies that the currect piggy is at least*/
     /*  a middle piggy                                          */
     if ((flags->position < 1) & (flags->rraddr[0] == '\0')) {
@@ -729,9 +734,9 @@ int main(int argc, char *argv[]) {
             FD_SET(parentrd, &masterset);
             break;
 
-            /*
-            * Head piggy
-            */
+        /*
+		* Head piggy
+		*/
         case 1:
 
 
@@ -749,9 +754,9 @@ int main(int argc, char *argv[]) {
             FD_SET(parentrd, &masterset);
             break;
 
-            /*
-            * Tail Piggy
-            */
+		/*
+		* Tail Piggy
+		*/
         default:
 
 
@@ -1476,7 +1481,7 @@ int main(int argc, char *argv[]) {
             */
             /* If dsplr is set we print data coming fr0m the left*/
 			/*`q*/
-            if (flags->dsplr > 0) {                
+            if (flags->dsplr ) {                
 				getyx(sw[ULW], yul, xul);				
                 wmove(sw[ULW], yul, xul);
 				addch(buf[0]);
