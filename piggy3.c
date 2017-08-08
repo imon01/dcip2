@@ -1463,8 +1463,8 @@ int main(int argc, char *argv[]) {
 			/*`q*/
             if (flags->dsplr) {
                 wmove(ULW, 0,0);
-                wprintw(sw[BRW], "%s",buf);
-                update_win(BRW);
+                wprintw(sw[ULWW], "%s",buf);
+                update_win(ULW);
             }
 
             /* Loop data right if set*/
