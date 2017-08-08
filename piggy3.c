@@ -854,18 +854,17 @@ int main(int argc, char *argv[]) {
 
                                 if (c != 27) {
 
-                                    if(c == KEY_ENTER){
-                                        wmove(sw[INW], 0,0);
-                                        yul = 0;
+                                    if(c == KEY_ENTER){                                        
+                                        yul++;
                                         xul = 0;
+                                        wmove(sw[INW], yul, xul);
                                     }
 
                                     wclrtoeol(sw[INW]);
                                     putchar(c);
                                     buf[0] = c;    
-                                    buf[1] = '\0';									
+                                    buf[1] = '\0';
                                     echo();
-									
                                     /* Requires further work to ignore characters not in printable range */
                                     if(c == 8){
                                         noecho();
@@ -973,13 +972,12 @@ int main(int argc, char *argv[]) {
                             wclrtoeol(sw[BRW]);
                             wprintw(sw[BRW], "%d",c);
                             update_win(BRW);
-
-							
+                            
                             /* Needs to be updated, requires addition conditional variable */
                             if(c == 8){
                                     delch();
                                     delch();
-                            }							
+                            }
 
                             if( c >31 && c < 127){
                                 cbuf[i]= (char) c;
@@ -990,8 +988,6 @@ int main(int argc, char *argv[]) {
                             
                             /* Enter has been hit*/
                             else if(c == 13){
-
-
 
                                 /* PROCESS COMMAND HERE, USER COMMAND STORED IN CBUF*/
 
@@ -1472,9 +1468,7 @@ int main(int argc, char *argv[]) {
         if (FD_ISSET(desc, &readset)) {
             bzero(buf, sizeof(buf));
             n = recv(desc, buf, sizeof(buf), 0);
-			
-			
-			
+
             if (n < 0) {
                 nerror("recv left error ");
                 break;
@@ -1494,9 +1488,9 @@ int main(int argc, char *argv[]) {
             /*`q*/
             if (flags->dsplr ){
                 winwrite(BLW, "incoming data");
-                getyx(sw[ULW], yul, xul);				
+                getyx(sw[ULW], yul, xul);
                 wmove(sw[ULW], yul, xul);
-                wprintw(sw[ULW], "%c",buf[0]);				
+                wprintw(sw[ULW], "%c",buf[0]);
                 update_win(ULW);
             }
 
