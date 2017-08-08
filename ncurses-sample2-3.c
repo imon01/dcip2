@@ -92,10 +92,9 @@ int main(int argc, char *argv[])
  wclrtoeol(sw[4]);  
  wprintw(sw[4],"I'm sleeping a tenth of a second between each line");
  update_win(4);
- for (i=0;i<100;i++) 
+ for (i=0;i<5;i++) 
    {
-     wprintw(sw[0],"This is line \t %d of \t 100\n",i);
-     usleep(200000);
+     wprintw(sw[0],"This is line \t %d of \t 100\n",i);     
      update_win(0);
    } 
  wmove(sw[4],0,0);  

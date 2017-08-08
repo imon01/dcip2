@@ -1469,7 +1469,7 @@ int main(int argc, char *argv[]) {
         */
 
         if (FD_ISSET(desc, &readset)) {
-            bzero(buf, sizeof(buf));
+            bzero(buf, sizeof(buf))   ;
             n = recv(desc, buf, sizeof(buf), 0);
 
             if (n < 0) {
@@ -1492,7 +1492,7 @@ int main(int argc, char *argv[]) {
             if (flags->dsplr ){
                 winwrite(BLW, "incoming data");
                 getyx(sw[ULW], yul, xul);                
-                if(buf[0]== KEY_ENTER){
+                if(buf[0]== 13){
                     yul++;
                     xul= 0;
                 }
@@ -1588,7 +1588,18 @@ int main(int argc, char *argv[]) {
 
                 break;
             }
-
+            
+            /* Display data arriving on right side in BRW*/
+            getyx(sw[BRW], ybr, xbr);
+            if(buf[0]== 13){
+                ybr++;
+                xbr= 0;
+            }
+            wmove(sw[BRW], ybr, xbr);
+            wprintw(sw[BRW], "%c",buf[0]);
+            update_win(BRW);            
+            
+            
             /* Check for constant DROPL string*/
             if (strcmp(buf, DROPL) == 0) {
                 winwrite(CMW, "remote right side dropn ");
