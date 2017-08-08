@@ -203,196 +203,196 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
 *            5  reserver for dropr
 */
 int flagsfunction( icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right, int inputDesignation){
-    int value = -1;
+        int value = -1;
 
-    /* output left (0), output right (1)*/
-    if (strncmp(command, "outputl", len) == 0) {
+        /* output left (0), output right (1)*/
+        if (strncmp(command, "outputl", len) == 0) {
 
-        if(position != 1){
+            if(position != 1){
+                value = 1;
+                flags->output =0;
+            }
+            else{
+                nerror("Cant set head piggy output right\n");
+            }
+        }
+
+
+        /* output left (0), output right (1)*/
+        if (strncmp(command, "outputr", len) == 0) {
+
+            if(position !=2){
+                value = 1;
+                flags->output = 1;
+            }else{
+                nerror("Cant set tail piggy output right");
+            }
+        }
+
+        /* */
+        if (strncmp(command, "output", len) == 0) {
             value = 1;
-            flags->output =0;
+            if (flags->output) {
+                wprintw(sw[INW], "output = right");
+                update_win(INW);
+            }
+            else{
+                wprintw(sw[INW], "output = left");
+                update_win(INW);
+            }
         }
-        else{
-            nerror("Cant set head piggy output right\n");
+
+        /* */
+        if (strncmp(command, "dsplr", len) == 0) {
+
+            if(position !=1){
+                value = 1;
+                flags->dsprl = 0;
+                flags->dsplr = 1;
+            }
+            else{
+                nerror("Cant set dsplr for head piggy");
+
+            }
         }
-    }
 
+        /* */
+        if (strncmp(command, "dsprl", len) == 0) {
 
-    /* output left (0), output right (1)*/
-    if (strncmp(command, "outputr", len) == 0) {
+            if(position != 2){
+                value = 1;
+                flags->dsprl = 1;
+                flags->dsplr = 0;
+            }
+            else{
+                nerror("Cant set dsprl for tail piggy");
+            }
+        }
 
-        if(position !=2){
+        /* */
+        if (strncmp(command, "display", len) == 0) {
             value = 1;
-            flags->output = 1;
-        }else{
-            nerror("Cant set tail piggy output right");
+            if(flags->dsprl){
+                winwrite(INW, "display right\n");
+            }
+            else{
+                winwrite(INW, "display left\n");
+            }
         }
-    }
 
-    /* */
-    if (strncmp(command, "output", len) == 0) {
-        value = 1;
-        if (flags->output) {
-            wprintw(sw[INW], "output = right");
-            update_win(INW);
+        /* */
+        if (strncmp(command, "persl", len) == 0) {
+            value = 2;
+            flags->persl = 1;
+            *openld = 1;
+
         }
-        else{
-            wprintw(sw[INW], "output = left");
-            update_win(INW);
+
+        /* */
+        if (strncmp(command, "persr", len) == 0) {
+            value = 3;
+            flags->persr = 1;
+            *openrd = 1;
+
         }
-    }
 
-    /* */
-    if (strncmp(command, "dsplr", len) == 0) {
+        /* */
+        if (strncmp(command, "dropl", len) == 0) {
+            value = 4;
+            flags->dropl = 1;
+        }
 
-        if(position !=1){
+        /* */
+        if (strncmp(command, "dropr", len) == 0) {
+            value = 5;
+            flags->dropr = 1;
+            *openrd = 0;
+            shutdown( *rd, 2);
+        }
+
+        /* */
+        if (strncmp(command, "right", len) == 0){
             value = 1;
-            flags->dsprl = 0;
-            flags->dsplr = 1;
-        }
-        else{
-            nerror("Cant set dsplr for head piggy");
-
-        }
-    }
-
-    /* */
-    if (strncmp(command, "dsprl", len) == 0) {
-
-        if(position != 2){
-            value = 1;
-            flags->dsprl = 1;
-            flags->dsplr = 0;
-        }
-        else{
-            nerror("Cant set dsprl for tail piggy");
-        }
-    }
-
-    /* */
-    if (strncmp(command, "display", len) == 0) {
-        value = 1;
-        if(flags->dsprl){
-            winwrite(INW, "display right\n");
-        }
-        else{
-            winwrite(INW, "display left\n");
-        }
-    }
-
-    /* */
-    if (strncmp(command, "persl", len) == 0) {
-        value = 2;
-        flags->persl = 1;
-        *openld = 1;
-
-    }
-
-    /* */
-    if (strncmp(command, "persr", len) == 0) {
-        value = 3;
-        flags->persr = 1;
-        *openrd = 1;
-
-    }
-
-    /* */
-    if (strncmp(command, "dropl", len) == 0) {
-        value = 4;
-        flags->dropl = 1;
-    }
-
-    /* */
-    if (strncmp(command, "dropr", len) == 0) {
-        value = 5;
-        flags->dropr = 1;
-        *openrd = 0;
-        shutdown( *rd, 2);
-    }
-
-    /* */
-    if (strncmp(command, "right", len) == 0){
-        value = 1;
-        winclear(INW);
-        wprintw(sw[INW], "%s:%hu",flags->localaddr, flags->llport);
-        update_win(INW);
-        if(*openrd == 1){
+            winclear(INW);
+            wmove(sw[INW], 0,0);
             wprintw(sw[INW], "%s:%hu",flags->localaddr, flags->llport);
-            update_win(INW);
-        }
-        else{
-            wprintw(sw[INW], ":*:*");
-            update_win(INW);
-        }
+                        
+            if(*openrd == 1){
+                wprintw(sw[INW], "%s:%hu",flags->localaddr, flags->llport);
+            }
+            else{
+                wprintw(sw[INW], ":*:*");
+            }
 
-        if(*openrd){
-            wmove(sw[INW], 1, 0);
-            wprintw(sw[INW], "CONNECTED");
-            update_win(INW);
-        }
-        else{
-            wmove(sw[INW], 1, 0);
-            waddstr(sw[INW], "DISCONNECTED");
-
-        }
-    }
-
-    /* left side connection*/
-    if (strncmp(command, "left", len) == 0){
-        winclear(INW);
-        value = 1;
-        if( *openld ){
-            wprintw(sw[INW], "%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);
-            update_win(INW);
-        }
-        else{
-            wprintw(sw[INW], "*:*");
+            if(*openrd){
+                winclear(INW, 1,0);
+                wmove(sw[INW], 1, 0);
+                wprintw(sw[INW], "CONNECTED");
+            }
+            else{
+                winclear(INW, 1,0);
+                wmove(sw[INW], 1, 0);
+                waddstr(sw[INW], "DISCONNECTED");
+            }
             update_win(INW);
         }
 
-        wprintw(sw[INW], ":%s:%hu", flags->localaddr, flags->llport);
-
-
-        if( *openld){
-            wmove(sw[INW], 1, 0);
-            wprintw(sw[INW], "LISTENING");
-            update_win(INW);
-        }
-        else{
-            wmove(sw[INW], 1, 0);
-            wprintw(sw[INW], "DISCONNECTED");
-            update_win(INW);
-        }
-    }
-
-    if (strncmp(command, "loopr", len) == 0) {
-        value = 1;
-        flags->loopr = 1;  /* Takes data to be written to the right and sends left  */
-        flags->output = 0; /* Output becomes left with loopr                        */
-
-    }
-    if (strncmp(command, "loopl", len) == 0) {
-        value = 1;
-        flags->loopl = 1;   /* Takes data to be written to the left and send right  */
-        flags->output = 1;  /* Output becomes right                                 */
-    }
-    if (inputDesignation != -1){
-        value = 1;
-    }
-    if (strncmp(command, "outputl", len) == 0) {
-
-        if(position != 1){
+        /* left side connection*/
+        if (strncmp(command, "left", len) == 0){
+            winclear(INW);
+            wmove(sw[INW], 0,0);
             value = 1;
-            flags->output =0;
+            if( *openld ){
+                wprintw(sw[INW], "%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);                
+            }
+            else{
+                wprintw(sw[INW], "*:*");                
+            }
+
+            wprintw(sw[INW], ":%s:%hu", flags->localaddr, flags->llport);
+
+
+            if( *openld){
+                winclear(INW, 1,0);
+                wmove(sw[INW], 1, 0);
+                wprintw(sw[INW], "LISTENING");               
+            }
+            else{
+                winclear(INW, 1,0);
+                wmove(sw[INW], 1, 0);
+                wprintw(sw[INW], "DISCONNECTED");                
+            }
+            update_win(INW);
         }
-        else{
-            nerror("Cant set head piggy output right");
+
+        if (strncmp(command, "loopr", len) == 0) {
+            value = 1;
+            flags->loopr = 1;  /* Takes data to be written to the right and sends left  */
+            flags->output = 0; /* Output becomes left with loopr                        */
+
         }
-    }
-    if (strncmp(command, "reset", len) == 0) {
-        value = 1;
-        flags->reset = 1;
-    }
+        if (strncmp(command, "loopl", len) == 0) {
+            value = 1;
+            flags->loopl = 1;   /* Takes data to be written to the left and send right  */
+            flags->output = 1;  /* Output becomes right                                 */
+        }
+        if (inputDesignation != -1){
+            value = 1;
+        }
+        if (strncmp(command, "outputl", len) == 0) {
+
+            if(position != 1){
+                value = 1;
+                flags->output =0;
+            }
+            else{
+                nerror("Cant set head piggy output right");
+            }
+        }
+        if (strncmp(command, "reset", len) == 0) {
+            value = 1;
+            flags->reset = 1;
+        }
 
     return value;
 }

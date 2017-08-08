@@ -248,13 +248,12 @@ void GUIshutdown(char *response) {
 }
 
 
-void winclear(int win){
-    wmove(sw[win], 0,0);
+void winclear(int win, int y, int x){
+    wmove(sw[win], y, x);
     wclrtoeol(sw[win]);
     update_win(win);
 }
 const char *writtenInputs[] = {
-<<<<<<< HEAD
         "connectl", 
         "connectr", 
         "listenl", 
@@ -265,7 +264,6 @@ const char *writtenInputs[] = {
         "rlport", 
         "lladdr", 
         "rraddr"    
-=======
         "connectl",
         "connectr",
         "listenl",
@@ -276,7 +274,6 @@ const char *writtenInputs[] = {
         "rlport",
         "lladdr",
         "rraddr"
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
 };
 
 static struct option long_options[] =
@@ -804,27 +801,17 @@ int main(int argc, char *argv[]) {
         *   durring its use.
         */
 
-<<<<<<< HEAD
-        
-        if (FD_ISSET(0, &readset)) {
-            
-            
-=======
+                
 
         if (FD_ISSET(0, &readset)) {
             wmove(sw[CMW], 0, 0);
             wclrtoeol(sw[CMW]);
 
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
             while (1) {
                 noecho();
                 c = wgetch(sw[CMW]);
                 switch (c) {
-<<<<<<< HEAD
-                    
-=======
 
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                     /*******************************/
                     /* Insert mode                 */
                     /*******************************/
@@ -863,17 +850,7 @@ int main(int argc, char *argv[]) {
                                         refresh();
                                     }
 
-<<<<<<< HEAD
-                                        wprintw(sw[ULW], buf);
-                                        update_win(ULW);
-                                        buf[i] = '\0';
-                                        i = 0;
-                                        /* Preconditions for sending data to the right, output == 1 */
-                                        if (flags->output && openrd) {
-                                            // send data
-                                            n = send(parentrd, buf, sizeof(buf), 0);
-                                            bzero(buf, sizeof(buf));
-=======
+
                                     wprintw(sw[ULW], buf);
                                     update_win(ULW);
                                     buf[i] = '\0';
@@ -883,7 +860,6 @@ int main(int argc, char *argv[]) {
                                         // send data
                                         n = send(parentrd, buf, sizeof(buf), 0);
                                         bzero(buf, sizeof(buf));
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
 
                                         if (n < 0) {
                                             nerror("right send error ");
@@ -933,15 +909,9 @@ int main(int argc, char *argv[]) {
                         }*/
                         break;
 
-<<<<<<< HEAD
                     /*******************************/
                     /*  Quitting                   */
                     /*******************************/
-=======
-                        /*******************************/
-                        /*  Quitting                   */
-                        /*******************************/
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                     case 113:
                         bzero(buf, sizeof(buf));
                         waddstr(sw[5], "exiting ");
@@ -950,32 +920,6 @@ int main(int argc, char *argv[]) {
 
                         return 1;
 
-<<<<<<< HEAD
-                    /*******************************/
-                    /* Interactive commands        */
-                    /*******************************/
-                    default:
-                        bzero(cbuf, sizeof(cbuf));                                                
-                        
-                        /*`1*/                        
-                        winwrite(CMW, ": ");
-                        i = 0;
-                        
-                        echo();
-                        nocbreak;
-
-
-                        if( c >31 && c < 127  || c ==8){
-                            waddch(sw[CMW], c);
-                            
-                        }                        
-                        update_win(CMW);                        
-
-                        while (1) {                            
-                            wmove(sw[BRW], 0,0);
-                            wclrtoeol(sw[BRW]);
-                            
-=======
                         /*******************************/
                         /* Interactive commands        */
                         /*******************************/
@@ -999,8 +943,6 @@ int main(int argc, char *argv[]) {
                         while (1) {
                             wmove(sw[BRW], 0,0);
                             wclrtoeol(sw[BRW]);
-
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                             wprintw(sw[BRW], "%d",c);
                             update_win(BRW);
 
@@ -1014,34 +956,18 @@ int main(int argc, char *argv[]) {
                                 wclrtoeol(sw[CMW]);
                                 update_win(CMW);
                             }
-<<<<<<< HEAD
                             
                             /* Enter has been hit*/
-=======
-
-                                /* Enter has been hit*/
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                             else if(c == 13){
 
 
 
                                 /* PROCESS COMMAND HERE, USER COMMAND STORED IN CBUF*/
-                                wmove(sw[URW], 0,0);
-                                wclrtoeol(sw[URW]);
-                                update_win(URW);
-<<<<<<< HEAD
-                                
-                                wmove(sw[URW], 0,0);
-                                wclrtoeol(sw[URW]);
-                                wprintw(sw[URW], "cbuf: %s",cbuf );
-                                update_win(URW);                                
-=======
 
                                 wmove(sw[URW], 0,0);
                                 wclrtoeol(sw[URW]);
                                 wprintw(sw[URW], "cbuf: %s",cbuf );
                                 update_win(URW);
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                                 break;
                             }
                             else{
@@ -1051,11 +977,8 @@ int main(int argc, char *argv[]) {
                                 update_win(CMW);
                                 winwrite(CMW, "not a printable character");
                                 wclrtoeol(sw[CMW]);
-<<<<<<< HEAD
                                 update_win(CMW);                                
-=======
-                                update_win(CMW);
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
+
                             }
                             c = wgetch(sw[CMW]);
                         }
@@ -1070,19 +993,11 @@ int main(int argc, char *argv[]) {
                         wclrtoeol(sw[CMW]);
                         update_win(CMW);
                         noecho();
-<<<<<<< HEAD
-                        
-
-                        inputLength = strlen(buf);
-                        inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
-                        
-=======
 
 
                         inputLength = strlen(buf);
                         inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
 
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                         for(int l = 0; l < 9; l++) {
                             checker = strstr(inputCheck, writtenInputs[l]);
                             if (checker == inputCheck) {
@@ -1273,12 +1188,8 @@ int main(int argc, char *argv[]) {
                                         inputDesignation = -1;
                                         if (flags->reset == 1) {
                                             resetWindows();
-                                            break;
-<<<<<<< HEAD
-                                        } 
-=======
+                                            break;                                        
                                         }
->>>>>>> eab2d3e1d3ff949abb9db3642cadcbd611ea13ad
                                         else {
 
                                             switch (n) {
