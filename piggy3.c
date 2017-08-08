@@ -1456,8 +1456,8 @@ int main(int argc, char *argv[]) {
             */
             /* If dsplr is set we print data coming frm the left*/
             if (flags->dsplr) {
-                wmove(ULW, 0,0);
-                wprintw(sw[BRW], buf);
+                //wmove(ULW, 0,0);
+                wprintw(sw[BRW], "%s",buf);
                 update_win(BRW);
             }
 
