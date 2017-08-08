@@ -159,10 +159,6 @@ struct sockaddr_in lconn;               /* structure to hold left connnecting ad
 
 int inputDesignation = -1;
 
-
-
-
-
 void update_win(int i) {
     touchwin(w[i]);
     wrefresh(sw[i]);
@@ -211,12 +207,9 @@ void resetWindows() {
 
     flags->noleft = 0;
     flags->noright = 0;
-    bzero(flags->rraddr,
-          sizeof(flags->rraddr));    /* Right connecting address                                           */
-    bzero(flags->lraddr,
-          sizeof(flags->rraddr));    /* Left connected address                                             */
-    bzero(flags->localaddr,
-          sizeof(flags->rraddr));    /* Local address                                                      */
+    bzero(flags->rraddr, sizeof(flags->rraddr));    /* Right connecting address                                           */
+    bzero(flags->lraddr, sizeof(flags->rraddr));    /* Left connected address                                             */
+    bzero(flags->localaddr, sizeof(flags->rraddr));    /* Local address                                                      */
     flags->llport = DEFAULT;                   /* left protocol port number                                          */
     flags->rrport = DEFAULT;                   /* right protocol port number                                         */
     flags->dsplr = 1;                           /* display left to right data, default if no display option provided  */
@@ -823,8 +816,8 @@ int main(int argc, char *argv[]) {
                             wmove(sw[INW], 0, 0);
                             wclrtoeol(sw[INW]);
                             echo();
-                            waddstr(sw[5], "Enter Insert ");
-                            update_win(5);
+                            waddstr(sw[INW], "Enter Insert ");
+                            update_win(INW);
 
                             while (1) {
                                 c = wgetch(sw[INW]);
@@ -856,6 +849,8 @@ int main(int argc, char *argv[]) {
                                     buf[i] = '\0';
                                     i = 0;
                                     /* Preconditions for sending data to the right, output == 1 */
+									
+									/* ``w */
                                     if (flags->output && openrd) {
                                         // send data
                                         n = send(parentrd, buf, sizeof(buf), 0);
@@ -873,7 +868,7 @@ int main(int argc, char *argv[]) {
                                         }
                                     }
 
-                                        /* Preconditions for sending data to the left, output == 0 */
+                                     /* Preconditions for sending data to the left, output == 0 */
                                     else if (!flags->output && openld) {
                                         n = send(desc, buf, sizeof(buf), 0);
                                         bzero(buf, sizeof(buf));
@@ -1461,7 +1456,7 @@ int main(int argc, char *argv[]) {
             */
             /* If dsplr is set we print data coming frm the left*/
             if (flags->dsplr) {
-                //printf("%s\n", buf);
+                wmove(ULW, 0,0);
                 wprintw(sw[BRW], buf);
                 update_win(BRW);
             }
