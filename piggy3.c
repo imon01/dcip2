@@ -1496,7 +1496,7 @@ int main(int argc, char *argv[]) {
                 winwrite(BLW, "incoming data");
                 getyx(sw[ULW], yul, xul);				
                 wmove(sw[ULW], yul, xul);
-                wprintw(sw[ULW], "%c",buf);				
+                wprintw(sw[ULW], "%c",buf[0]);				
                 update_win(ULW);
             }
 
