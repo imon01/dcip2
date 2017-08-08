@@ -1463,7 +1463,7 @@ int main(int argc, char *argv[]) {
 			/*`q*/
             if (flags->dsplr) {
                 wmove(ULW, 0,0);
-                wprintw(sw[ULWW], "%s",buf);
+                wprintw(sw[ULW], "%s",buf);
                 update_win(ULW);
             }
 
