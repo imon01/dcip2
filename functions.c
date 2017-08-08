@@ -204,7 +204,8 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
 */
 int flagsfunction( icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right, int inputDesignation){
         int value = -1;
-
+        winclear(INW, 1,0);
+        
         /* output left (0), output right (1)*/
         if (strncmp(command, "outputl", len) == 0) {
 
@@ -324,14 +325,11 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
                 wprintw(sw[INW], ":*:*");
             }
 
-            if(*openrd){
-                winclear(INW, 1,0);
-                wmove(sw[INW], 1, 0);
+            wmove(sw[INW], 1, 0);
+            if(*openrd){                
                 wprintw(sw[INW], "CONNECTED");
             }
-            else{
-                winclear(INW, 1,0);
-                wmove(sw[INW], 1, 0);
+            else{                
                 waddstr(sw[INW], "DISCONNECTED");
             }
             update_win(INW);
@@ -351,15 +349,11 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
 
             wprintw(sw[INW], ":%s:%hu", flags->localaddr, flags->llport);
 
-
+            wmove(sw[INW], 1, 0);
             if( *openld){
-                winclear(INW, 1,0);
-                wmove(sw[INW], 1, 0);
                 wprintw(sw[INW], "LISTENING");               
             }
             else{
-                winclear(INW, 1,0);
-                wmove(sw[INW], 1, 0);
                 wprintw(sw[INW], "DISCONNECTED");                
             }
             update_win(INW);
@@ -393,8 +387,8 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             value = 1;
             flags->reset = 1;
         }
-
-    return value;
+    
+        return value;
 }
 /*End flagsfunction*/
 
