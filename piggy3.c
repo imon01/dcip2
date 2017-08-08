@@ -524,18 +524,16 @@ int main(int argc, char *argv[]) {
             case 'r':
                 openrd = 0;
                 flags->noright = 2;
-                flags->dsplr = 0;
-                flags->dsprl = 1;
                 waddstr(sw[4], "no right ");
                 update_win(4);
                 break;
             case 'd':
+					flags->dsplr = 2;
                 /* No change, default is dsplr*/
                 break;
 
             case 'e':
-                flags->dsprl = 1;
-                flags->dsplr = 0;
+                flags->dsprl = 1;                
                 waddstr(sw[4], "dsprl ");
                 update_win(4);
                 break;
@@ -653,7 +651,7 @@ int main(int argc, char *argv[]) {
 	
 	
 	/* Head piggy, exit if dsplr and noleft*/
-	if(flags->noleft && flags->dsplr){
+	if(flags->noleft && flags->dsplr == 2){
 		nerror("dsplr and noleft cannot both be set...");
 		GUIshutdown(response);
 		return -1;
