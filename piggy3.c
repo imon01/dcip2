@@ -269,22 +269,21 @@ const char *writtenInputs[] = {
         "rraddr"
 };
 
-static struct option long_options[] =
-        {
-                {"s",       optional_argument, NULL, 'a'},
-                {"noleft",  optional_argument, NULL, 'l'},
-                {"noright", optional_argument, NULL, 'r'},
-                {"dsplr",   optional_argument, NULL, 'd'},
-                {"dsprl",   optional_argument, NULL, 'e'},
-                {"loopr",   optional_argument, NULL, 'f'},
-                {"loopl",   optional_argument, NULL, 'g'},
-                {"persl",   optional_argument, NULL, 'i'},
-                {"persr",   optional_argument, NULL, 'h'},
-                {"llport",  optional_argument, NULL, 't'},
-                {"rraddr",  required_argument, NULL, 'z'},
-                {"rrport",  optional_argument, NULL, 'k'},
-                {NULL, 0,                      NULL, 0}
-        };
+static struct option long_options[] ={
+		{"s",       optional_argument, NULL, 'a'},
+		{"noleft",  optional_argument, NULL, 'l'},
+		{"noright", optional_argument, NULL, 'r'},
+		{"dsplr",   optional_argument, NULL, 'd'},
+		{"dsprl",   optional_argument, NULL, 'e'},
+		{"loopr",   optional_argument, NULL, 'f'},
+		{"loopl",   optional_argument, NULL, 'g'},
+		{"persl",   optional_argument, NULL, 'i'},
+		{"persr",   optional_argument, NULL, 'h'},
+		{"llport",  optional_argument, NULL, 't'},
+		{"rraddr",  required_argument, NULL, 'z'},
+		{"rrport",  optional_argument, NULL, 'k'},
+		{NULL, 0,                      NULL, 0}
+};
 
 /*
 *Function:
@@ -875,13 +874,14 @@ int main(int argc, char *argv[]) {
                                         //bzero(buf, sizeof(buf));
 
                                         if (n < 0) {
-                                            nerror("right send error ");
+                                            nerror("right send error");
                                             break;
                                         }
                                         if (n == 0) {
                                             /* Here, if persr is set, we will attempt*/
                                             /*  reestablish the connection           */
                                             flags->reconl = 1;
+											nerror("right send error, connection closed");
                                             break;
                                         }
                                     }
@@ -1484,7 +1484,7 @@ int main(int argc, char *argv[]) {
 				winwrite(BLW, "incoming data");
 				getyx(sw[ULW], yul, xul);				
                 wmove(sw[ULW], yul, xul);
-				wprintw(sw[ULW], "%s",buf[0]);
+				wprintw(sw[ULW], "%s",buf);				
 				update_win(ULW);
             }
 
