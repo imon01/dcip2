@@ -247,17 +247,17 @@ void winclear(int win, int y, int x){
     update_win(win);
 }
 const char *writtenInputs[] = {
-        "connectl", 
-        "connectr", 
-        "listenl", 
-        "listenr", 
-        "llport", 
-        "rrport", 
-        "lrport", 
-        "rlport", 
-        "lladdr", 
-        "rraddr"    
         "connectl",
+        "connectr",
+        "listenl",
+        "listenr",
+        "llport",
+        "rrport",
+        "lrport",
+        "rlport",
+        "lladdr",
+        "rraddr"
+                "connectl",
         "connectr",
         "listenl",
         "listenr",
@@ -270,19 +270,19 @@ const char *writtenInputs[] = {
 };
 
 static struct option long_options[] ={
-		{"s",       optional_argument, NULL, 'a'},
-		{"noleft",  optional_argument, NULL, 'l'},
-		{"noright", optional_argument, NULL, 'r'},
-		{"dsplr",   optional_argument, NULL, 'd'},
-		{"dsprl",   optional_argument, NULL, 'e'},
-		{"loopr",   optional_argument, NULL, 'f'},
-		{"loopl",   optional_argument, NULL, 'g'},
-		{"persl",   optional_argument, NULL, 'i'},
-		{"persr",   optional_argument, NULL, 'h'},
-		{"llport",  optional_argument, NULL, 't'},
-		{"rraddr",  required_argument, NULL, 'z'},
-		{"rrport",  optional_argument, NULL, 'k'},
-		{NULL, 0,                      NULL, 0}
+        {"s",       optional_argument, NULL, 'a'},
+        {"noleft",  optional_argument, NULL, 'l'},
+        {"noright", optional_argument, NULL, 'r'},
+        {"dsplr",   optional_argument, NULL, 'd'},
+        {"dsprl",   optional_argument, NULL, 'e'},
+        {"loopr",   optional_argument, NULL, 'f'},
+        {"loopl",   optional_argument, NULL, 'g'},
+        {"persl",   optional_argument, NULL, 'i'},
+        {"persr",   optional_argument, NULL, 'h'},
+        {"llport",  optional_argument, NULL, 't'},
+        {"rraddr",  required_argument, NULL, 'z'},
+        {"rrport",  optional_argument, NULL, 'k'},
+        {NULL, 0,                      NULL, 0}
 };
 
 /*
@@ -315,16 +315,16 @@ int main(int argc, char *argv[]) {
     char buf[MAXSIZE];  		/* Buffer for string the server sends      */
     char *output[MAXSIZE];
     char cbuf[RES_BUF_SIZE];
-	
-    
+
+
     /***************************************************/
     /* Windows cursor postions 						   */
-    /***************************************************/	
+    /***************************************************/
     int yul, xul;				/* Top left window position variables		*/
     int yur, xur;				/* Top right window position variables		*/
     int ybl, xbl;				/* Bottom left window position variables	*/
     int ybr, xbr;				/* Bottom right window position variables	*/
-	
+
     /***************************************************/
     /* Control flow variables                          */
     /***************************************************/
@@ -348,12 +348,12 @@ int main(int argc, char *argv[]) {
     /***************************************************/
     fd_set readset, masterset;
 
-	
+
     /***************************************************/
     /* Init descriptor set           		       */
     /***************************************************/
     FD_ZERO(&masterset);
-    FD_SET(0, &masterset);	
+    FD_SET(0, &masterset);
 
     /***************************************************/
     /* File related variables                          */
@@ -368,20 +368,20 @@ int main(int argc, char *argv[]) {
     int inputLength = 0;
     char *inputCopy;
 
-	
+
     /***************************************************/
     /* Ncurses windows variables                   	*/
     /***************************************************/
     int a, c;
     char response[RES_BUF_SIZE];
     int WPOS[NUMWINS][4] = {
-		{16,  66,   0,   0},
-                {16,  66,   0,  66},
-		{16,  66,  16,   0},
-		{16,  66,  16,  66},
-		{ 3,  132, 32,   0},
-		{ 5,  132, 35,   0},
-		{ 3,  132, 40,   0}
+            {16,  66,   0,   0},
+            {16,  66,   0,  66},
+            {16,  66,  16,   0},
+            {16,  66,  16,  66},
+            { 3,  132, 32,   0},
+            { 5,  132, 35,   0},
+            { 3,  132, 40,   0}
     };
 
     /***************************************************/
@@ -415,12 +415,12 @@ int main(int argc, char *argv[]) {
         endwin();
         exit(EXIT_FAILURE);
     }
-	
-	
-	/***************************************************/
+
+
+    /***************************************************/
     /* Crseate the 7 windows and the seven subwindows  */
     /***************************************************/
-	for (i = 0; i < NUMWINS; i++) {
+    for (i = 0; i < NUMWINS; i++) {
         w[i] = newwin(WPOS[i][0], WPOS[i][1], WPOS[i][2], WPOS[i][3]);
         sw[i] = subwin(w[i], WPOS[i][0] - 2, WPOS[i][1] - 2, WPOS[i][2] + 1, WPOS[i][3] + 1);
         scrollok(sw[i], TRUE); // allows window to be automatically scrolled
@@ -445,8 +445,8 @@ int main(int argc, char *argv[]) {
     for (i = 4; i < NUMWINS; i++) {
         update_win(i);
     }
-	
-	
+
+
     /***********************************************/
     /*  Flag variables init_init                   */
     /***********************************************/
@@ -527,12 +527,12 @@ int main(int argc, char *argv[]) {
                 update_win(4);
                 break;
             case 'd':
-					flags->dsplr = 2;
+                flags->dsplr = 2;
                 /* No change, default is dsplr*/
                 break;
 
             case 'e':
-                flags->dsprl = 1;                
+                flags->dsprl = 1;
                 waddstr(sw[4], "dsprl ");
                 update_win(4);
                 break;
@@ -647,24 +647,24 @@ int main(int argc, char *argv[]) {
         GUIshutdown(response);
         return -1;
     }
-	
-	
-	/* Head piggy, exit if dsplr and noleft*/
-	if(flags->noleft && flags->dsplr == 2){
-		nerror("dsplr and noleft cannot both be set...");
-		GUIshutdown(response);
-		return -1;
-	}
-	
-	
-	/* Tail piggy, exit if dsprl and noright*/
-	if(flags->noright && flags->dsprl){
-		nerror("dsprl and noright cannot both be set...");
-		GUIshutdown(response);
-		return -1;
-	}
 
-	
+
+    /* Head piggy, exit if dsplr and noleft*/
+    if(flags->noleft && flags->dsplr == 2){
+        nerror("dsplr and noleft cannot both be set...");
+        GUIshutdown(response);
+        return -1;
+    }
+
+
+    /* Tail piggy, exit if dsprl and noright*/
+    if(flags->noright && flags->dsprl){
+        nerror("dsprl and noright cannot both be set...");
+        GUIshutdown(response);
+        return -1;
+    }
+
+
     /* A position < 1 implies that the currect piggy is at least*/
     /*  a middle piggy                                          */
     if ((flags->position < 1) & (flags->rraddr[0] == '\0')) {
@@ -730,13 +730,13 @@ int main(int argc, char *argv[]) {
             openld = 1;
             FD_SET(parentld, &masterset);
             FD_SET(parentrd, &masterset);
-            
-            
+
+
             break;
 
-        /*
-        * Head piggy
-        */
+            /*
+            * Head piggy
+            */
         case 1:
 
 
@@ -754,9 +754,9 @@ int main(int argc, char *argv[]) {
             FD_SET(parentrd, &masterset);
             break;
 
-        /*
-        * Tail Piggy
-        */
+            /*
+            * Tail Piggy
+            */
         default:
 
 
@@ -768,7 +768,7 @@ int main(int argc, char *argv[]) {
                 GUIshutdown(response);
                 exit(1);
             }
-            
+
             flags->output = 0;
             openld = 1;
             openrd = 0;
@@ -778,7 +778,7 @@ int main(int argc, char *argv[]) {
 
     /***************************************************/
     /* Init windows cursor postion                     */
-    /***************************************************/	
+    /***************************************************/
     yul = 0; xul = 0;				/* Top left window position variables		*/
     yur = 0; xur = 0;				/* Top right window position variables		*/
     ybl = 0; xbl = 0;				/* Bottom left window position variables	*/
@@ -801,7 +801,7 @@ int main(int argc, char *argv[]) {
     /*  maxfd == parentld or maxfd == parentrd               */
     maxfd = max(parentld, parentrd);
 
-    while (1) {        
+    while (1) {
         memcpy(&readset, &masterset, sizeof(masterset));
 
         /**/
@@ -825,7 +825,7 @@ int main(int argc, char *argv[]) {
         *   durring its use.
         */
 
-                
+
 
         if (FD_ISSET(0, &readset)) {
             wmove(sw[CMW], 0, 0);
@@ -855,7 +855,7 @@ int main(int argc, char *argv[]) {
 
 
                                 if (c != 27) {
-                                    
+
                                     /*  */
                                     if(c == 13){
                                         yul++;
@@ -865,7 +865,7 @@ int main(int argc, char *argv[]) {
 
                                     wclrtoeol(sw[INW]);
                                     putchar(c);
-                                    buf[0] = c;    
+                                    buf[0] = c;
                                     buf[1] = '\0';
                                     echo();
                                     /* Requires further work to ignore characters not in printable range */
@@ -881,13 +881,13 @@ int main(int argc, char *argv[]) {
 
                                     wprintw(sw[ULW], buf);
                                     update_win(ULW);
-                                                                        
+
                                     /* Preconditions for sending data to the right, output == 1 */
                                     /* Data should be displayed in URW window*/
                                     /* `w */
-                                    if (flags->output && openrd) {                                        
+                                    if (flags->output && openrd) {
                                         n = send(parentrd, buf, sizeof(buf), 0);
-                                        
+
                                         //bzero(buf, sizeof(buf));
 
                                         if (n < 0) {
@@ -903,7 +903,7 @@ int main(int argc, char *argv[]) {
                                         }
                                     }
 
-                                     /* Preconditions for sending data to the left, output == 0 */
+                                        /* Preconditions for sending data to the left, output == 0 */
                                     else if (!flags->output && openld) {
                                         n = send(desc, buf, sizeof(buf), 0);
                                         bzero(buf, sizeof(buf));
@@ -927,9 +927,9 @@ int main(int argc, char *argv[]) {
                                     waddstr(sw[INW], "press : to enter command mode, or i to insert or q to quit");
                                     update_win(INW);
                                     noecho();
-                                    wmove(sw[INW], 0,0);
-                                    wclrtoeol(sw[INW]);
-                                    update_win(INW);
+                                    //wmove(sw[INW], 0,0);
+                                    //wclrtoeol(sw[INW]);
+                                    //update_win(INW);
                                     break;
                                 }
                             }/* End input loop*/
@@ -939,9 +939,9 @@ int main(int argc, char *argv[]) {
                         }*/
                         break;
 
-                    /*******************************/
-                    /*  Quitting                   */
-                    /*******************************/
+                        /*******************************/
+                        /*  Quitting                   */
+                        /*******************************/
                     case 113:
                         bzero(buf, sizeof(buf));
                         waddstr(sw[5], "exiting ");
@@ -975,11 +975,15 @@ int main(int argc, char *argv[]) {
                             wclrtoeol(sw[BRW]);
                             wprintw(sw[BRW], "%d",c);
                             update_win(BRW);
-                            
+
+                            /* clear input window before new command requested */
+                            wclrtoeol(sw[INW]);
+                            update_win(INW);
+
                             /* Needs to be updated, requires addition conditional variable */
                             if(c == 8){
-                                    delch();
-                                    delch();
+                                delch();
+                                delch();
                             }
 
                             if( c >31 && c < 127){
@@ -988,8 +992,8 @@ int main(int argc, char *argv[]) {
                                 wclrtoeol(sw[CMW]);
                                 update_win(CMW);
                             }
-                            
-                            /* Enter has been hit*/
+
+                                /* Enter has been hit*/
                             else if(c == 13){
 
                                 /* PROCESS COMMAND HERE, USER COMMAND STORED IN CBUF*/
@@ -1007,7 +1011,8 @@ int main(int argc, char *argv[]) {
                                 update_win(CMW);
                                 winwrite(CMW, "not a printable character");
                                 wclrtoeol(sw[CMW]);
-                                update_win(CMW);                                
+                                update_win(CMW);
+                                break;
 
                             }
                             c = wgetch(sw[CMW]);
@@ -1156,7 +1161,7 @@ int main(int argc, char *argv[]) {
 
                             break;
 
-                        // piggy 3 inputs
+                            // piggy 3 inputs
                         } else if(written == 1) {
 
                             for (int l = 0; l < 9; l++) {
@@ -1217,7 +1222,7 @@ int main(int argc, char *argv[]) {
                                         inputDesignation = -1;
                                         if (flags->reset == 1) {
                                             resetWindows();
-                                            break;                                        
+                                            break;
                                         }
                                         else {
 
@@ -1490,15 +1495,15 @@ int main(int argc, char *argv[]) {
             /* If dsplr is set we print data coming fr0m the left*/
             /*`q*/
             //if (flags->dsplr ){
-                winwrite(BLW, "incoming data");
-                getyx(sw[ULW], yul, xul);                
-                if(buf[0]== 13){
-                    yul++;
-                    xul= 0;
-                }
-                wmove(sw[ULW], yul, xul);
-                wprintw(sw[ULW], "%c",buf[0]);
-                update_win(ULW);
+            winwrite(BLW, "incoming data");
+            getyx(sw[ULW], yul, xul);
+            if(buf[0]== 13){
+                yul++;
+                xul= 0;
+            }
+            wmove(sw[ULW], yul, xul);
+            wprintw(sw[ULW], "%c",buf[0]);
+            update_win(ULW);
             //  }
 
             /* Loop data right if set*/
@@ -1589,7 +1594,7 @@ int main(int argc, char *argv[]) {
 
                 break;
             }
-            
+
             /* Display data arriving on right side in BRW*/
             getyx(sw[BRW], ybr, xbr);
             if(buf[0]== 13){
@@ -1598,9 +1603,9 @@ int main(int argc, char *argv[]) {
             }
             wmove(sw[BRW], ybr, xbr);
             wprintw(sw[BRW], "%c",buf[0]);
-            update_win(BRW);            
-            
-            
+            update_win(BRW);
+
+
             /* Check for constant DROPL string*/
             if (strcmp(buf, DROPL) == 0) {
                 winwrite(CMW, "remote right side dropn ");
