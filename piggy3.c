@@ -1686,8 +1686,8 @@ int main(int argc, char *argv[]) {
             parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
 
             if (parentrd > 0) {
-                flags->persr = 1;
                 openrd = 1;
+                flags->persr = 1;                
                 maxfd = max(desc, parentld);
                 maxfd = max(maxfd, parentrd);
                 FD_SET(parentrd, &masterset);
@@ -1698,7 +1698,12 @@ int main(int argc, char *argv[]) {
         if (flags->reconl) {
             winwrite(CMW, "left side reconnecting attempt... ");
         }
+        /*refresh windows here*/
     }
+    
+    /**********************************************/
+    /* END SELECT LOOP                            */
+    /**********************************************/
 
     /* End screen updating */
     endwin();
