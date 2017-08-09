@@ -814,6 +814,14 @@ int main(int argc, char *argv[]) {
             nerror("select error == 0");
         }
 
+        
+       /*refresh windows here*/
+        i =0;
+        for(; i< 4; i++){
+            update_win(i);
+        }
+        
+        
         /*****************************************************************/
         /* Standard in descriptor ready (@tag:  0FD)                     */
         /*****************************************************************/
@@ -1030,7 +1038,7 @@ int main(int argc, char *argv[]) {
                         noecho();
 
 
-                        inputLength = strlen(buf);
+                        inputLength = strlen(cbuf);
                         inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
 
                         for(int l = 0; l < 9; l++) {
@@ -1042,7 +1050,7 @@ int main(int argc, char *argv[]) {
 
                         checker = strstr(inputCheck, "source");
                         if (checker == inputCheck) {
-                            strncpy(inputCopy, buf, inputLength);
+                            strncpy(inputCopy, cbuf, inputLength);
                             strtok_r(inputCopy, delimiter, &end);
                             word2 = strtok_r(NULL, delimiter, &end);
 
@@ -1055,7 +1063,7 @@ int main(int argc, char *argv[]) {
                                 waddstr(w[4], output[x]);
                                 update_win(4);
 
-                                n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd,
+                                n = flagsfunction(flags, output[x], sizeof(cbuf), flags->position, &openld, &openrd,
                                                   &desc, &parentrd, lconn, right, inputDesignation);
 
                                 if (flags->reset == 1) {
@@ -1074,8 +1082,8 @@ int main(int argc, char *argv[]) {
                                         case 2:
                                             if (flags->position != 1) {
                                                 bzero(buf, sizeof(buf));
-                                                strcpy(buf, PERSL);
-                                                n = send(desc, buf, sizeof(buf), 0);
+                                                strcpy(cbuf, PERSL);
+                                                n = send(desc, cbuf, sizeof(cbuf), 0);
 
                                                 if (n < 0) {
                                                     openld = 0;
@@ -1084,7 +1092,7 @@ int main(int argc, char *argv[]) {
                                                     openld = 1;
                                                 }
                                             }
-                                            bzero(buf, sizeof(buf));
+                                            bzero(cbuf, sizeof(cbuf));
                                             break;
 
                                             /*
@@ -1127,9 +1135,9 @@ int main(int argc, char *argv[]) {
                                             *   -clear output left
                                             */
                                             if (desc > 0) {
-                                                bzero(buf, sizeof(buf));
-                                                strcpy(buf, DROPL);
-                                                n = send(desc, buf, sizeof(buf), 0);
+                                                bzero(cbuf, sizeof(cbuf));
+                                                strcpy(cbuf, DROPL);
+                                                n = send(desc, cbuf, sizeof(cbuf), 0);
                                                 openld = 0;
                                                 if (n < 0) {
                                                     continue;
@@ -1168,7 +1176,7 @@ int main(int argc, char *argv[]) {
                                 checker = strstr(inputCheck, writtenInputs[l]);
 
                                 if (checker == inputCheck) {
-                                    strncpy(inputCopy, buf, inputLength);
+                                    strncpy(inputCopy, cbuf, inputLength);
                                     strtok_r(inputCopy, delimiter, &end);
                                     word2 = strtok_r(NULL, delimiter, &end);
 
@@ -1236,11 +1244,12 @@ int main(int argc, char *argv[]) {
                                                     /*
                                                     *  persl
                                                     */
+                                                    break;
                                                 case 2:
                                                     if (flags->position != 1) {
-                                                        bzero(buf, sizeof(buf));
-                                                        strcpy(buf, PERSL);
-                                                        n = send(desc, buf, sizeof(buf), 0);
+                                                        bzero(cbuf, sizeof(cbuf));
+                                                        strcpy(cbuf, PERSL);
+                                                        n = send(desc, buf, sizeof(cbuf), 0);
 
                                                         if (n < 0) {
                                                             openld = 0;
@@ -1291,16 +1300,16 @@ int main(int argc, char *argv[]) {
                                                     *   -clear output left
                                                     */
                                                     if (desc > 0) {
-                                                        bzero(buf, sizeof(buf));
-                                                        strcpy(buf, DROPL);
+                                                        bzero(cbuf, sizeof(buf));
+                                                        strcpy(cbuf, DROPL);
 
-                                                        n = send(desc, buf, sizeof(buf), 0);
+                                                        n = send(desc, cbuf, sizeof(cbuf), 0);
                                                         openld = 0;
                                                         if (n < 0) {
                                                             continue;
                                                         }
                                                     }
-                                                    bzero(buf, sizeof(buf));
+                                                    bzero(cbuf, sizeof(cbuf));
                                                     break;
 
                                                     /*
@@ -1321,7 +1330,7 @@ int main(int argc, char *argv[]) {
                         }
                             /* End reading commands from inputCheck*/
                         else {
-                            n = flagsfunction(flags, cbuf, sizeof(buf), flags->position, &openld, &openrd, &desc,
+                            n = flagsfunction(flags, cbuf, sizeof(cbuf), flags->position, &openld, &openrd, &desc,
                                               &parentrd, lconn, right, inputDesignation);
 
 
@@ -1342,9 +1351,9 @@ int main(int argc, char *argv[]) {
                                         */
                                     case 2:
                                         if (flags->position != 1) {
-                                            bzero(buf, sizeof(buf));
-                                            strcpy(buf, PERSL);
-                                            n = send(desc, buf, sizeof(buf), 0);
+                                            bzero(cbuf, sizeof(cbuf));
+                                            strcpy(cbuf, PERSL);
+                                            n = send(desc, cbuf, sizeof(cbuf), 0);
 
                                             if (n < 0) {
                                                 openld = 0;
@@ -1354,7 +1363,7 @@ int main(int argc, char *argv[]) {
                                                 openld = 1;
                                             }
                                         }
-                                        bzero(buf, sizeof(buf));
+                                        bzero(cbuf, sizeof(cbuf));
                                         break;
 
                                         /*
@@ -1394,17 +1403,16 @@ int main(int argc, char *argv[]) {
                                         *   -clear output left
                                         */
                                         if (desc > 0) {
-                                            bzero(buf, sizeof(buf));
-                                            strcpy(buf, DROPL);
+                                            bzero(cbuf, sizeof(cbuf));
+                                            strcpy(cbuf, DROPL);
 
-                                            n = send(desc, buf, sizeof(buf), 0);
+                                            n = send(desc, cbuf, sizeof(cbuf), 0);
                                             openld = 0;
                                             if (n < 0) {
                                                 continue;
-                                            }
-//                                    FD_CLR(desc, &masterset);
+                                            } 
                                         }
-                                        bzero(buf, sizeof(buf));
+                                        bzero(cbuf, sizeof(cbuf));
                                         break;
 
                                         /*
@@ -1429,6 +1437,7 @@ int main(int argc, char *argv[]) {
                 wmove(sw[CMW], 0, 0);
                 wclrtoeol(sw[CMW]);
             }
+            break;
 
         }/*End stdin */
 
@@ -1444,6 +1453,9 @@ int main(int argc, char *argv[]) {
         */
 
         if (FD_ISSET(parentld, &readset)) {
+            wmove(sw[CMW], 0, 0);
+            wclrtoeol(sw[CMW]);
+            
             len = sizeof(lconn);
             desc = accept(parentld, (struct sockaddr *) &lconn, &len);
             if (desc < 0) {
@@ -1473,10 +1485,12 @@ int main(int argc, char *argv[]) {
         *   use position with desc.
         */
 
-        if (FD_ISSET(desc, &readset)) {
+        if (FD_ISSET(desc, &readset)) {                        
+            
             bzero(buf, sizeof(buf))   ;
             n = recv(desc, buf, sizeof(buf), 0);
-
+            winwrite(CMW, "incoming  data");
+            
             if (n < 0) {
                 nerror("recv left error ");
                 break;
@@ -1494,14 +1508,15 @@ int main(int argc, char *argv[]) {
             */
             /* If dsplr is set we print data coming fr0m the left*/
             /*`q*/
-            //if (flags->dsplr ){
-            winwrite(BLW, "incoming data");
+            //if (flags->dsplr ){                        
+            
             getyx(sw[ULW], yul, xul);
             if(buf[0]== 13){
                 yul++;
                 xul= 0;
             }
             wmove(sw[ULW], yul, xul);
+            wclrtoeol(sw[ULW]); 
             wprintw(sw[ULW], "%c",buf[0]);
             update_win(ULW);
             //  }
@@ -1566,11 +1581,11 @@ int main(int argc, char *argv[]) {
         }
 
         /*****************************************************************/
-        /* RIGHT SIDE DESCRIPTROR (find @tag: RDD)                       */
+        /* RIGHT SIDE DESCRIPTROR (find @tag: RSD)                       */
         /*****************************************************************/
 
         /*
-        *
+        * --UPDATE--
         * Notes:
         *   FD_ISSET will be true for the head
         *   piggy and middle piggies, therfore we
@@ -1580,7 +1595,8 @@ int main(int argc, char *argv[]) {
         if (FD_ISSET(parentrd, &readset)) {
             bzero(buf, sizeof(buf));
             n = recv(parentrd, buf, sizeof(buf), 0);
-            winwrite(BLW, "incoming data");
+            winwrite(CMW, "incoming right data");
+            
             if (n < 0) {
                 openrd = 0;
                 nerror("recv right error ");
@@ -1600,8 +1616,10 @@ int main(int argc, char *argv[]) {
             if(buf[0]== 13){
                 ybr++;
                 xbr= 0;
-            }
+            }            
+            
             wmove(sw[BRW], ybr, xbr);
+            wclrtoeol(sw[CMW]);
             wprintw(sw[BRW], "%c",buf[0]);
             update_win(BRW);
 
@@ -1668,10 +1686,10 @@ int main(int argc, char *argv[]) {
             }
         }/* End ready parentrd*/
 
+        
         /*****************************************/
         /* Left and right reconnection if set    */
         /*****************************************/
-
         /*
         *Notes:
         *  -Try right reconnection if unsuccessful
@@ -1697,8 +1715,8 @@ int main(int argc, char *argv[]) {
         /* Dummy condition for persl "reconnection" */
         if (flags->reconl) {
             winwrite(CMW, "left side reconnecting attempt... ");
-        }
-        /*refresh windows here*/
+        }        
+
     }
     
     /**********************************************/
