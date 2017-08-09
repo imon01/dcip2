@@ -311,7 +311,7 @@ int main(int argc, char *argv[]) {
     int desc = -1;     			/* Left accepted descriptor                */
     int parentrd = -1; 			/* Main left  descriptors                  */
     int parentld = -1;  		/* Main right descriptors                  */
-    char errorstr[32];			/* Error buf                               */
+    char errorstr[32];			/* Error buf							   */
     char buf[MAXSIZE];  		/* Buffer for string the server sends      */
     char *output[MAXSIZE];
     char cbuf[RES_BUF_SIZE];
@@ -946,7 +946,7 @@ int main(int argc, char *argv[]) {
                         bzero(buf, sizeof(buf));
                         waddstr(sw[5], "exiting ");
                         update_win(5);
-                        GUIshutdown(response);
+                        endwin();
 
                         return 1;
 
@@ -1489,7 +1489,7 @@ int main(int argc, char *argv[]) {
             */
             /* If dsplr is set we print data coming fr0m the left*/
             /*`q*/
-            if (flags->dsplr ){
+            //if (flags->dsplr ){
                 winwrite(BLW, "incoming data");
                 getyx(sw[ULW], yul, xul);                
                 if(buf[0]== 13){
@@ -1499,7 +1499,7 @@ int main(int argc, char *argv[]) {
                 wmove(sw[ULW], yul, xul);
                 wprintw(sw[ULW], "%c",buf[0]);
                 update_win(ULW);
-            }
+            //  }
 
             /* Loop data right if set*/
             if (flags->loopr && openld) {
@@ -1575,6 +1575,7 @@ int main(int argc, char *argv[]) {
         if (FD_ISSET(parentrd, &readset)) {
             bzero(buf, sizeof(buf));
             n = recv(parentrd, buf, sizeof(buf), 0);
+            winwrite(BLW, "incoming data");
             if (n < 0) {
                 openrd = 0;
                 nerror("recv right error ");
