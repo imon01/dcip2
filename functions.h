@@ -23,7 +23,7 @@
 
 #define DEFAULT 36795 /* default protocol port number, booknumber */
 #define QLEN 6          /* size of request queue */
-#define MAXSIZE 64
+#define MAXSIZE 8
 #define NUMWINS 7
 #define RES_BUF_SIZE 80
 
