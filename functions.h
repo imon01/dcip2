@@ -107,8 +107,6 @@ int sock_init(int, int, int, char *, struct sockaddr_in , struct hostent *);
 
 int flagsfunction(icmd *, char *, int , int, unsigned char *, unsigned char *, int *, int *, struct sockaddr_in, struct sockaddr_in, int inputDesignation);
 
-/*Function ID: socket type, buffer adddres, descriptor address, flags struct address, master fd_set address
- */
 void sockettype(char *, unsigned char*, unsigned char *, unsigned char *, int *, int *, icmd * , fd_set *);
 
 

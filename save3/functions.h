@@ -85,10 +85,10 @@ typedef struct flags{
 }icmd;
 
 /***************************************************/
-/* Windows cursor postions 						   */
+/* Windows cursor postions                         */
 /***************************************************/
-short yul, xul;				/* Top left window position variables		*/
-short yur, xur;				/* Top right window position variables		*/
+short yul, xul;                 /* Top left window position variables		*/
+short yur, xur;			/* Top right window position variables		*/
 short ybl, xbl;				/* Bottom left window position variables	*/
 short ybr, xbr;				/* Bottom right window position variables	*/
 short ycm, xcm;				/* Command window position variables	    */

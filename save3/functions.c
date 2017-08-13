@@ -204,7 +204,7 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
 */
 int flagsfunction( icmd  * flags, char * command, int len ,int position, unsigned char * openld, unsigned char * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right, int inputDesignation){
         int value = -1;
-        winclear(INW, 1,0);
+        winclear(CMW, 1,0);
         
         /* output left (0), output right (1)*/
         if (strncmp(command, "outputl", len) == 0) {
@@ -234,12 +234,10 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, unsigne
         if (strncmp(command, "output", len) == 0) {
             value = 1;
             if (flags->output) {
-                wprintw(sw[INW], "output = right");
-                update_win(INW);
+                winwrite(CMW, "output = right");                
             }
             else{
-                wprintw(sw[INW], "output = left");
-                update_win(INW);
+                winwrite(CMW, "output = left");                
             }
         }
 
@@ -253,7 +251,6 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, unsigne
             }
             else{
                 nerror("Cant set dsplr for head piggy");
-
             }
         }
 
@@ -271,13 +268,13 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, unsigne
         }
 
         /* */
-        if (strncmp(command, "display", len) == 0) {
+        if (strncmp(command, "display", len) == 0){
             value = 1;
             if(flags->dsprl){
-                winwrite(INW, "display right\n");
+                winwrite(CMW, "display right\n");
             }
             else{
-                winwrite(INW, "display left\n");
+                winwrite(CMW, "display left\n");
             }
         }
 
