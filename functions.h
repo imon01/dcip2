@@ -50,11 +50,6 @@ typedef struct flags{
     int lrport;                 /* Left accepting conditional port              */
     int rlport;                 /* Right side listening port                    */
 
-    char connectl;
-    char connectr;
-    char listenl;
-    char listenr;
-
 
     unsigned char position;
     unsigned char noleft;
@@ -71,11 +66,15 @@ typedef struct flags{
     unsigned char loopr;
     unsigned char loopl;
     unsigned char reset;
-    char lraddr    [100];
-    char rraddr    [100];
-    char lladdr    [100];
-    char localaddr [100];
-    char source    [100]; /* Source file*/
+    char lraddr    [64];
+    char rraddr    [64];
+    char lladdr    [64];
+    char localaddr [64];
+    char source    [64]; /* Source file*/    
+    char connectl [64];
+    char connectr [64];
+    char listenl  [64];
+    char listenr  [64];
 }icmd;
 
 /***************************************************/
@@ -98,6 +97,8 @@ void nerror(char *);
 char *strdup(const char *);
 
 char fileRead(const char *, char *[]);
+
+void flags_init(icmd *);
 
 int sock_init(int, int, int, char *, struct sockaddr_in , struct hostent *);
 

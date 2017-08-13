@@ -180,6 +180,13 @@ void nerror(char *str) {
     update_win(ERW);
 }
 
+void nerror(char [] str){
+    
+    
+}
+
+
+
 void winwrite(int win, char *str) {
     win_clear(win);
     waddstr(sw[win], str);
@@ -220,15 +227,15 @@ void reset_displays(){
     waddstr(sw[ERW], "Errors:");
     waddstr(sw[CMW], "Commands:");
 
-    i = 4;
-    for(; i< 7; i++){
-        update_win(i);
-    }
+    update_win(ERW);
+    update_win(INW);
+    update_win(CMW);
+    
 }
 
 
 /* clear the windows and set all variables to default */
-void resetWindows() {
+void resetWindows( icmd  * flags) {
 
     setlocale(LC_ALL, "");
     initscr();
@@ -238,17 +245,32 @@ void resetWindows() {
     intrflush(stdscr, FALSE);
     keypad(stdscr, TRUE);
 
+
+
     /* Clear screen before starting */
     clear();
     w[0] = newwin(0, 0, 0, 0);
 
+    int WPOS[NUMWINS][4] = {
+            {16, 66,  0,  0},
+            {16, 66,  0,  66},
+            {16, 66,  16, 0},
+            {16, 66,  16, 66},
+            {3,  132, 32, 0},
+            {5,  132, 35, 0},
+            {3,  132, 40, 0}
+    };
+
     for (int i = 0; i < NUMWINS; i++) {
+        w[i] = newwin(WPOS[i][0], WPOS[i][1], WPOS[i][2], WPOS[i][3]);
+        sw[i] = subwin(w[i], WPOS[i][0] - 2, WPOS[i][1] - 2, WPOS[i][2] + 1, WPOS[i][3] + 1);
+        scrollok(sw[i], TRUE); // allows window to be automatically scrolled
+        wborder(w[i], 0, 0, 0, 0, 0, 0, 0, 0);
         touchwin(w[i]);
         wrefresh(w[i]);
         wrefresh(sw[i]);
     }
 
-    icmd *flags;
 
     flags->noleft = 0;
     flags->noright = 0;
@@ -263,30 +285,15 @@ void resetWindows() {
     flags->loopl = 0;                               /* take data that comes in from the right and send back to the right  */
     flags->output = 1;
 
-    flags->connectl = 0;
-    flags->connectr = 0;
-    flags->listenl = 0;
-    flags->listenr = 0;
+    //flags->connectl = NULL;
+    //flags->connectr = NULL;
+    //flags->listenl = NULL;
+    //flags->listenr = NULL;
     flags->reset = 0;
-
 
 }
 
-/* inputs requiring 2nd word in command */
-const char *writtenInputs[] = {
-        "connectl",
-        "connectr",
-        "listenl",
-        "listenr",
-        "llport",
-        "rrport",
-        "lrport",
-        "rlport",
-        "lladdr",
-        "rraddr",
-};
-
-static struct option long_options[] = {
+static struct option long_options[] ={
         {"s",       optional_argument, NULL, 'a'},
         {"noleft",  optional_argument, NULL, 'l'},
         {"noright", optional_argument, NULL, 'r'},
@@ -339,25 +346,26 @@ char *twoWordCommand(char cbuf[80], icmd *flags){
             // connectl
             if (inputDesignation == 0) {
 
-                flags->connectl = *word2;
+                
+                strcpy(flags->connectl, word2);
                 waddstr(sw[INW], "connectl ");
                 wprintw(sw[INW], word2);
             }
                 // connectr
             else if (inputDesignation == 1) {
-                flags->connectr = *word2;
+                strcpy(flags->connectr, word2);
                 waddstr(sw[INW], "connectr ");
                 wprintw(sw[INW], word2);
             }
                 //listenl
             else if (inputDesignation == 2) {
-                flags->listenl = *word2;
+                strcpy(flags->listenl, word2);
                 waddstr(sw[INW], "listenl ");
                 wprintw(sw[INW], word2);
             }
                 // listenr
             else if (inputDesignation == 3) {
-                flags->listenr = *word2;
+                strcpy(flags->listenr,word2);
                 waddstr(sw[INW], "listenr ");
                 wprintw(sw[INW], word2);
             }
@@ -387,17 +395,16 @@ char *twoWordCommand(char cbuf[80], icmd *flags){
             }
                 // lladdr
             else if (inputDesignation == 8) {
-                flags->lladdr[100] = *word2;
+                strcpy(flags->lladdr, word2);
                 waddstr(sw[INW], "lladdr ");
                 wprintw(sw[INW], word2);
             }
                 // rraddr
             else if (inputDesignation == 9) {
-                flags->rraddr[100] = *word2;
+                strcpy(flags->rraddr, word2);
                 waddstr(sw[INW], "rraddr ");
                 wprintw(sw[INW], word2);
             }
-
 
             return inputCopy;
         }
@@ -405,49 +412,7 @@ char *twoWordCommand(char cbuf[80], icmd *flags){
     return NULL;
 }
 
-int fileCommand(char cbuf[80]) {
 
-
-    char delimiter[] = " ";
-    char *checker = NULL;
-    //char *inputCheck = cbuf;
-    char *word2, *end;
-    int inputLength;
-    int readCommandLines;
-    char *inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
-
-    /* clear output array */
-    memset(output, 0, sizeof output);
-
-
-    /* check for source [filename.txt] */
-    checker = strstr(cbuf, "source");
-    if (checker == cbuf) {
-
-
-        strncpy(inputCopy, cbuf, inputLength);
-        strtok_r(inputCopy, delimiter, &end);
-        word2 = strtok_r(NULL, delimiter, &end);
-
-
-        /* Get commands from fileread*/
-        readCommandLines = fileRead(word2, output);
-
-        /* Read from array and pass into flagfunction */
-
-
-
-
-        return readCommandLines;
-    }
-    return 0;
-}
-/***************************************************************************************************************************************************/
-/***************************************************************************************************************************************************/
-/**                                                                  START MAIN                                                                   **/
-/***************************************************************************************************************************************************/
-/***************************************************************************************************************************************************/
-/**find@tag: SM0**/
 /*
 *Function:
 *       main
@@ -457,7 +422,7 @@ int fileCommand(char cbuf[80]) {
 *
 *
 *Returns:
-*       None, integer
+*       
 *
 */
 int main(int argc, char *argv[]) {
@@ -495,7 +460,7 @@ int main(int argc, char *argv[]) {
     /***************************************************/
     /* Remote and host information variables           */
     /***************************************************/
-    struct addrinfo hints, *infoptr;            /* used for getting connecting right piggy if give DNS*/
+    struct addrinfo hints, *infoptr; /* used for getting connecting right piggy if give DNS*/
     struct addrinfo *p;
     struct in_addr ip;
     struct hostent *lhost;
@@ -530,7 +495,7 @@ int main(int argc, char *argv[]) {
 
 
     /***************************************************/
-    /* Ncurses windows variables                       */
+    /* Ncurses windows variables                        */
     /***************************************************/
     int a, c;
     char response[RES_BUF_SIZE];
@@ -543,12 +508,11 @@ int main(int argc, char *argv[]) {
             { 5,  132, 35,   0},
             { 3,  132, 40,   0}
     };
-    
-    
+
     /***************************************************/
     /* Setup ncurses for multiple windows              */
     /***************************************************/
-    setlocale(LC_ALL, "");                      /* Use to local character set*/
+    setlocale(LC_ALL, ""); 		/* Use to local character set*/
     initscr();
     cbreak();
     noecho();
@@ -560,7 +524,6 @@ int main(int argc, char *argv[]) {
     clear();
     w[0] = newwin(0, 0, 0, 0);
 
-    
     /****************************************************/
     /* Check for correct terminal size, 132x43 required */
     /***************************************************/
@@ -573,7 +536,7 @@ int main(int argc, char *argv[]) {
         addstr("Press enter to terminate program");
         mvprintw(3, 0, "%dx%d\n", COLS, LINES);
         refresh();
-        getstr(response);
+        getstr(response); // Pause so we can see the screen
         endwin();
         exit(EXIT_FAILURE);
     }
@@ -585,21 +548,7 @@ int main(int argc, char *argv[]) {
     for (i = 0; i < NUMWINS; i++) {
         w[i] = newwin(WPOS[i][0], WPOS[i][1], WPOS[i][2], WPOS[i][3]);
         sw[i] = subwin(w[i], WPOS[i][0] - 2, WPOS[i][1] - 2, WPOS[i][2] + 1, WPOS[i][3] + 1);
-        scrollok(sw[i], TRUE); 
-        wborder(w[i], 0, 0, 0, 0, 0, 0, 0, 0);
-        touchwin(w[i]);
-        wrefresh(w[i]);
-        wrefresh(sw[i]);
-    }
-
-
-    /***************************************************/
-    /* Create the 7 windows and the seven subwindows  */
-    /***************************************************/
-    for (i = 0; i < NUMWINS; i++) {
-        w[i] = newwin(WPOS[i][0], WPOS[i][1], WPOS[i][2], WPOS[i][3]);
-        sw[i] = subwin(w[i], WPOS[i][0] - 2, WPOS[i][1] - 2, WPOS[i][2] + 1, WPOS[i][3] + 1);
-        scrollok(sw[i], TRUE); 
+        scrollok(sw[i], TRUE); // allows window to be automatically scrolled
         wborder(w[i], 0, 0, 0, 0, 0, 0, 0, 0);
         touchwin(w[i]);
         wrefresh(w[i]);
@@ -627,317 +576,216 @@ int main(int argc, char *argv[]) {
     /***********************************************/
     icmd *flags;
     flags = malloc(sizeof(icmd));
-
-    flags->noleft = 0;
-    flags->noright = 0;
-    bzero(flags->rraddr, sizeof(flags->rraddr));    /* Right connecting address                                           */
-    bzero(flags->lraddr, sizeof(flags->rraddr));    /* Left connected address                                             */
-    bzero(flags->localaddr, sizeof(flags->rraddr)); /* Local address                                                      */
-    flags->llport = DEFAULT;                        /* left protocol port number                                          */
-    flags->rrport = DEFAULT;                        /* right protocol port number                                         */
-    flags->dsplr = 1;                               /* display left to right data, default if no display option provided  */
-    flags->dsprl = 0;                               /* display right  to left data                                        */
-    flags->loopr = 0;                               /* take data that comes from the left and send it back to the left    */
-    flags->loopl = 0;                               /* take data that comes in from the right and send back to the right  */
-    flags->output = 1;
-    flags->reset = 0;
+    flags_init(flags);
 
 
+    /*********************************/
+    /*  Parsing argv[]               */
+    /*********************************/
 
-    /*************************************/
-    /*  Parsing argv[], if argc > 1      */
-    /*************************************/
-    //if(argc > 1){
-        while ((ch = getopt_long_only(argc, argv, "a::l::r::d::e::f::g::h::i::t::k:z:", long_options, &indexptr)) != -1) {
-            switch (ch) {
-                case 'a':
-                    /* read file */
-                    for (int comm = 0; argv[comm] != '\0'; comm++) {
-                        if (strstr(argv[comm], ".txt") != NULL) {
-                            fileRequested = 1;
-                            filename = argv[comm];
+    while ((ch = getopt_long_only(argc, argv, "a::l::r::d::e::f::g::h::i::t::k:z:", long_options, &indexptr)) != -1) {
+        switch (ch) {
+            case 'a':
+                /* read file */
+                for (int comm = 0; argv[comm] != '\0'; comm++) {
+                    if (strstr(argv[comm], ".txt") != NULL) {
+                        fileRequested = 1;
+                        filename = argv[comm];
+                    }
+                }
+
+                if (fileRequested) {
+                    readLines = fileRead(filename, output);
+
+                    /* read from array and pass into flag function*/
+                    for (x = 0; x < readLines; ++x) {
+                        n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &descl,
+                                          &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
+
+                        if (n < 0) {
+                            nerror("invalid command");
                         }
+                        free(output[x]);
                     }
 
-                    if (fileRequested) {
-                        readLines = fileRead(filename, output);
+                }
+                    /* if none specified read from default filename*/
+                else {
+                    readLines = fileRead("scriptin.txt", output);
+                    /* read from array and pass into flag function  */
+                    for (x = 0; x < readLines; ++x) {
+                        n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &descl,
+                                          &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
 
-                        /* read from array and pass into flag function*/
-                        for (x = 0; x < readLines; ++x) {
-                            n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &descl,
-                                            &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
-
-                            if (n < 0) {
-                                nerror("invalid command");
-                            }
-                            free(output[x]);
+                        if (n < 0) {
+                            nerror("invalid command");
                         }
-
+                        free(output[x]);
                     }
-                        /* if none specified read from default filename*/
-                    else {
-                        readLines = fileRead("scriptin.txt", output);
-                        /* read from array and pass into flag function  */
-                        for (x = 0; x < readLines; ++x) {
-                            n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &descl,
-                                            &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
+                }
+                break;
+            case 'l':
+                openld = 0;
+                flags->noleft = 1;
+                waddstr(sw[4], "no left ");
+                update_win(4);
+                break;
 
-                            if (n < 0) {
-                                nerror("invalid command");
-                            }
-                            free(output[x]);
-                        }
-                    }
-                    break;
-                case 'l':
-                    openld = 0;
-                    flags->noleft = 1;
-                    waddstr(sw[4], "no left ");
-                    update_win(4);
-                    break;
+            case 'r':
+                openrd = 0;
+                flags->noright = 2;
+                waddstr(sw[4], "no right ");
+                update_win(4);
+                break;
+            case 'd':
+                flags->dsplr = 2;
+                /* No change, default is dsplr*/
+                break;
 
-                case 'r':
-                    openrd = 0;
-                    flags->noright = 2;
-                    waddstr(sw[4], "no right ");
-                    update_win(4);
-                    break;
-                case 'd':
-                    flags->dsplr = 2;
-                    /* No change, default is dsplr*/
-                    break;
+            case 'e':
+                flags->dsprl = 1;
+                waddstr(sw[4], "dsprl ");
+                update_win(4);
+                break;
 
-                case 'e':
-                    flags->dsprl = 1;
-                    waddstr(sw[4], "dsprl ");
-                    update_win(4);
-                    break;
+            case 'f':
+                flags->loopr = 1;
+                flags->output = 1;
+                waddstr(sw[4], "loopr ");
+                update_win(4);
+                break;
 
-                case 'f':
-                    flags->loopr = 1;
-                    flags->output = 1;
-                    waddstr(sw[4], "loopr ");
-                    update_win(4);
-                    break;
+            case 'g':
+                flags->loopl = 1;
+                flags->output = 0;
+                waddstr(sw[4], "loopl ");
+                update_win(4);
+                break;
 
-                case 'g':
-                    flags->loopl = 1;
-                    flags->output = 0;
-                    waddstr(sw[4], "loopl ");
-                    update_win(4);
-                    break;
+            case 'i':
+                flags->persl = 1;
+                waddstr(sw[4], "persl ");
+                update_win(4);
+                break;
 
-                case 'i':
-                    flags->persl = 1;
-                    waddstr(sw[4], "persl ");
-                    update_win(4);
-                    break;
-
-                case 'h':
-                    flags->persr = 1;
-                    waddstr(sw[4], "persr ");
-                    update_win(4);
-                case 't':
-                    if (number(argv[optind]) > 0) {
-                        flags->llport = atoi(argv[optind]);
-                    } else {
-                        nerror(" left port not a number");
-                        GUIshutdown(response);
-                        return -1;
-                    }
-                    if (flags->llport < 0 || flags->llport > 88889) {
-                        nerror(" left port number out of range");
-                        GUIshutdown(response);
-                        return -1;
-                    }
-                    break;
-
-                case 'k':
-                    if (number(argv[optind - 1]) > 0) {
-                        flags->rrport = atoi(argv[optind]);
-                    } else {
-                        nerror(" right port not a number ");
-                        GUIshutdown(response);
-                        return -1;
-                    }
-                    if (flags->rrport < 0 || flags->rrport > 88889) {
-                        nerror(" right port number out of range");
-                        GUIshutdown(response);
-                        return -1;
-                    }
-                    /* test for illegal value */
-                    break;
-
-                case 'z':
-                    strncpy(flags->rraddr, argv[optind - 1], sizeof(flags->rraddr));
-                    hints.ai_family = AF_INET;
-                    n = getaddrinfo(flags->rraddr, NULL, NULL, &infoptr);
-
-                    if (n != 0) {
-                        nerror(" rraddr error");
-                        GUIshutdown(response);
-                        return -1;
-                    }
-
-                    for (p = infoptr; p != NULL; p = p->ai_next) {
-                        getnameinfo(p->ai_addr, p->ai_addrlen, hostinfo, sizeof(hostinfo), NULL, 0, NI_NUMERICHOST);
-                        strcpy(flags->rraddr, hostinfo);
-                    }
-
-                    freeaddrinfo(infoptr);
-                    break;
-
-                case '?':
-                    nerror("No valid command");
+            case 'h':
+                flags->persr = 1;
+                waddstr(sw[4], "persr ");
+                update_win(4);
+            case 't':
+                if (number(argv[optind]) > 0) {
+                    flags->llport = atoi(argv[optind]);
+                } else {
+                    nerror(" left port not a number");
                     GUIshutdown(response);
                     return -1;
-            }
-        }
-        /* end switch statement */
-
-
-        /**************************************************/
-        /*  Adjusting program variables and correct flags */
-        /**************************************************/
-
-        /* If head piggy selected, it requires a right address*/
-        if (flags->noleft && (flags->rraddr[0] == '0')) {
-            nerror("Head piggy requires a right address...\n");
-            GUIshutdown(response);
-            return -1;
-        }
-
-        /* Checking for minimum program requirements*/
-        flags->position = flags->noleft + flags->noright;
-        if (flags->position == 3) {
-            //printf("Piggy requires at least one connection...\n");
-            nerror("Piggy requires at least one connection...\n");
-            GUIshutdown(response);
-            return -1;
-        }
-
-        /* Checking if display flags are appropiately set*/
-        n = flags->dsplr + flags->dsprl;
-        if (n == 3) {
-            nerror("dsplr and dsprl cannot both be set...");
-            GUIshutdown(response);
-            return -1;
-        }
-
-
-        /* Head piggy, exit if dsplr and noleft*/
-        if(flags->noleft && flags->dsplr == 2){
-            nerror("dsplr and noleft cannot both be set...");
-            GUIshutdown(response);
-            return -1;
-        }
-
-
-        /* Tail piggy, exit if dsprl and noright*/
-        if(flags->noright && flags->dsprl){
-            nerror("dsprl and noright cannot both be set...");
-            GUIshutdown(response);
-            return -1;
-        }
-
-
-        /* A position < 1 implies that the currect piggy is at least*/
-        /*  a middle piggy                                          */
-        if ((flags->position < 1) & (flags->rraddr[0] == '\0')) {
-            nerror("Piggy right connection requires right address or DNS...\n");
-            GUIshutdown(response);
-            return -1;
-        }
-
-
-    /**WARNING: GENERALIZE THE PIGGY POSTIONS, SO EACH CAN STAND ALONE. THAT IS, EACH PIGGY TYPE CAN EXIST W/O CONNECTIONS
-    * GENERALIZE THE PIGGY DESCRIPTORS
-    **/
-        /*********************************/
-        /*  Piggy setup                  */
-        /*********************************/
-        /* pigspo*/
-        switch (flags->position) {
-
-            /*
-            * Middle piggy
-            */
-            case 0:
-
-
-                pigopt = 2;
-                parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
-                if (parentrd < 0) {
-                    nerror("socket_init");
-                    GUIshutdown(response);
-                    exit(1);
                 }
-
-                pigopt = 1;
-                parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);
-                if (parentld < 0) {
-                    nerror("socket_init");
+                if (flags->llport < 0 || flags->llport > 88889) {
+                    nerror(" left port number out of range");
                     GUIshutdown(response);
-                    exit(1);
+                    return -1;
                 }
-
-                lefttype  = 0;
-                righttype = 1;
-                openrd   = 1;
-                openld   = 1;
-                FD_SET(parentld, &masterset);
-                FD_SET(parentrd, &masterset);
-
-
                 break;
 
-                /*
-                * Head piggy
-                */
-            case 1:
-
-
-                pigopt = 2;
-                parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
-
-                if (parentrd < 0) {
-                    nerror("socket_init");
+            case 'k':
+                if (number(argv[optind - 1]) > 0) {
+                    flags->rrport = atoi(argv[optind]);
+                } else {
+                    nerror(" right port not a number ");
                     GUIshutdown(response);
-                    exit(1);
+                    return -1;
                 }
-
-                openrd = 1;
-                openld = 0;
-                lefttype = NULLCONNECTION;
-                righttype = 1;
-                FD_SET(parentrd, &masterset);
+                if (flags->rrport < 0 || flags->rrport > 88889) {
+                    nerror(" right port number out of range");
+                    GUIshutdown(response);
+                    return -1;
+                }
+                /* test for illegal value */
                 break;
 
-                /*
-                * Tail Piggy
-                */
-            default:
+            case 'z':
+                strncpy(flags->rraddr, argv[optind - 1], sizeof(flags->rraddr));
+                hints.ai_family = AF_INET;
+                n = getaddrinfo(flags->rraddr, NULL, NULL, &infoptr);
 
-
-                pigopt = 1;
-                parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);
-
-                if (parentld < 0) {
-                    nerror("socket_init");
+                if (n != 0) {
+                    nerror(" rraddr error");
                     GUIshutdown(response);
-                    exit(1);
+                    return -1;
                 }
 
-                flags->output = 0;
-                openld = 0;
-                openrd = 0;
-                lefttype = 0;
-                righttype = NULLCONNECTION;
-                FD_SET(parentld, &masterset);
+                for (p = infoptr; p != NULL; p = p->ai_next) {
+                    getnameinfo(p->ai_addr, p->ai_addrlen, hostinfo, sizeof(hostinfo), NULL, 0, NI_NUMERICHOST);
+                    strcpy(flags->rraddr, hostinfo);
+                }
+
+                freeaddrinfo(infoptr);
+                break;
+
+            case '?':
+                nerror("No valid command");
+                GUIshutdown(response);
+                return -1;
         }
-        /*end switch */
-    //}
-    
+    }
+    /* end switch statement */
+
+
+    /**************************************************/
+    /*  Adjusting program variables and correct flags */
+    /**************************************************/
+
+    /* If head piggy selected, it requires a right address*/
+    if (flags->noleft && (flags->rraddr[0] == '0')) {
+        nerror("Head piggy requires a right address...\n");
+        GUIshutdown(response);
+        return -1;
+    }
+
+    /* Checking for minimum program requirements*/
+    flags->position = flags->noleft + flags->noright;
+    if (flags->position == 3) {
+        //printf("Piggy requires at least one connection...\n");
+        nerror("Piggy requires at least one connection...\n");
+        GUIshutdown(response);
+        return -1;
+    }
+
+    /* Checking if display flags are appropiately set*/
+    n = flags->dsplr + flags->dsprl;
+    if (n == 3) {
+        nerror("dsplr and dsprl cannot both be set...");
+        GUIshutdown(response);
+        return -1;
+    }
+
+
+    /* Head piggy, exit if dsplr and noleft*/
+    if(flags->noleft && flags->dsplr == 2){
+        nerror("dsplr and noleft cannot both be set...");
+        GUIshutdown(response);
+        return -1;
+    }
+
+
+    /* Tail piggy, exit if dsprl and noright*/
+    if(flags->noright && flags->dsprl){
+        nerror("dsprl and noright cannot both be set...");
+        GUIshutdown(response);
+        return -1;
+    }
+
+
+    /* A position < 1 implies that the currect piggy is at least*/
+    /*  a middle piggy                                          */
+    if ((flags->position < 1) & (flags->rraddr[0] == '\0')) {
+        nerror("Piggy right connection requires right address or DNS...\n");
+        GUIshutdown(response);
+        return -1;
+    }
+
+
+
     /*********************************/
     /*    Getting local IP address   */
     /*********************************/
@@ -957,7 +805,93 @@ int main(int argc, char *argv[]) {
     ip = *(struct in_addr *) lhost->h_addr_list[0];
     strcpy(flags->localaddr, inet_ntoa(ip));
 
-    
+
+
+
+    /*********************************/
+    /*  Piggy setup                  */
+    /*********************************/
+    /* pigspo*/
+    switch (flags->position) {
+
+        /*
+         * Middle piggy
+         */
+        case 0:
+
+
+            pigopt = 2;
+            parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
+            if (parentrd < 0) {
+                nerror("socket_init");
+                GUIshutdown(response);
+                exit(1);
+            }
+
+            pigopt = 1;
+            parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);
+            if (parentld < 0) {
+                nerror("socket_init");
+                GUIshutdown(response);
+                exit(1);
+            }
+
+            lefttype  = 0;
+            righttype = 1;
+            openrd   = 1;
+            openld   = 1;
+            FD_SET(parentld, &masterset);
+            FD_SET(parentrd, &masterset);
+
+
+            break;
+
+            /*
+            * Head piggy
+            */
+        case 1:
+
+
+            pigopt = 2;
+            parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
+
+            if (parentrd < 0) {
+                nerror("socket_init");
+                GUIshutdown(response);
+                exit(1);
+            }
+
+            openrd = 1;
+            openld = 0;
+            lefttype = NULLCONNECTION;
+            righttype = 1;
+            FD_SET(parentrd, &masterset);
+            break;
+
+            /*
+            * Tail Piggy
+            */
+        default:
+
+
+            pigopt = 1;
+            parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);
+
+            if (parentld < 0) {
+                nerror("socket_init");
+                GUIshutdown(response);
+                exit(1);
+            }
+
+            flags->output = 0;
+            openld = 1;
+            openrd = 0;
+            lefttype = 0;
+            righttype = NULLCONNECTION;
+            FD_SET(parentld, &masterset);
+    }
+    /*end switch */
+
     /***************************************************/
     /* Init windows cursor postion                     */
     /***************************************************/
@@ -999,6 +933,8 @@ int main(int argc, char *argv[]) {
             nerror("select error == 0");
         }
 
+        
+        
         /*****************************************************************/
         /* Standard in descriptor ready (@tag:  0FD)                     */
         /*****************************************************************/
@@ -1011,10 +947,12 @@ int main(int argc, char *argv[]) {
         * 
         */
 
+
+
         if (FD_ISSET(0, &readset)) {
-            win_clear(CMW);
+            win_clear(INW);
             bzero(buf, sizeof(buf));
-            
+
             tempright = descr > 0 ? descr : parentrd; 
             templeft  = descl > 0 ? descl : parentld;
             
@@ -1037,8 +975,7 @@ int main(int argc, char *argv[]) {
 
                             if (c != 27) {
 
-                                wclrtoeol(sw[INW]);
-                                //putchar(c);
+                                wclrtoeol(sw[INW]);                                
                                 buf[0] = c;
                                 buf[1] = '\0';
                                 echo();
@@ -1090,8 +1027,7 @@ int main(int argc, char *argv[]) {
                                     wprintw(sw[URW], buf);
                                     update_win(URW);
                                 }
-                                
-                                /* Preconditions for sending data to the left, output == 0 */
+                                    /* Preconditions for sending data to the left, output == 0 */
                                 else if (!flags->output && openld) {
                                     n = send(templeft, buf, sizeof(buf), 0);
 
@@ -1141,15 +1077,11 @@ int main(int argc, char *argv[]) {
                                     }
                                 }
                             }
-                            
-                            /* ESCAPE key has been hit*/
+                                /* ESCAPE key has been hit*/
                             else {
                                 /**WE COULD reset the local windows to starting state**/
                                 /**Display window modes**/
-                                noecho();
-                                waddstr(sw[INW], "press : to enter command mode, or i to insert or q to quit");
-                                update_win(INW);
-                                win_clear(INW);
+                                noecho();                            
                                 break;
                             }
                         }/* End input loop*/
@@ -1165,18 +1097,6 @@ int main(int argc, char *argv[]) {
                     /*******************************/
                 case 113:
                     bzero(buf, sizeof(buf));
-
-
-                    /**WARNING: THESE TEST CASES MUST BE CHANGED ONCE WE GENERALIZED THE DESCRIPTORS BEHAVIOR**/
-//                         if( parentld> 0){
-//                             shutdown(parentld, 1);
-//                         }
-//                         if( descl > 0){
-//                             shutdown(descl, 2);
-//                         }
-//                         if( parentrd> 0){
-//                             shutdown(parentrd, 2);
-//                         }
                     winwrite(CMW, "Exiting");
                     GUIshutdown(response);
                     endwin();
@@ -1203,7 +1123,6 @@ int main(int argc, char *argv[]) {
                     update_win(CMW);
 
                     while (1) {
-
 
                         /* clear input window before new command requested */
                         wclrtoeol(sw[INW]);
@@ -1243,39 +1162,47 @@ int main(int argc, char *argv[]) {
                     if(i == RES_BUF_SIZE){
                         winwrite(ERW, "buffer full");
                     }
-
-                    wmove(sw[CMW], 0,0);
-                    wclrtoeol(sw[CMW]);
-                    update_win(CMW);
+                    
+                    win_clear(CMW);
                     noecho();
 
-
-/**WARNING: REMEMBER TO INSERT I.C. FUNCTIONALITY HERE**/
-                    /**WARNING: REMEMBER TO INSERT I.C. FUNCTIONALITY HERE**/
-/**WARNING: REMEMBER TO INSERT I.C. FUNCTIONALITY HERE**/
-                    /**WARNING: REMEMBER TO INSERT I.C. FUNCTIONALITY HERE**/
-/**WARNING: REMEMBER TO INSERT I.C. FUNCTIONALITY HERE**/
-                    /**WARNING: REMEMBER TO INSERT I.C. FUNCTIONALITY HERE**/
 /**WARNING: REMEMBER TO INSERT I.C. FUNCTIONALITY HERE**/
 
 
                     /* two word commands */
                     char *commandWord1 = twoWordCommand(cbuf, flags);
 
-                    /* file commands */
+
+                    /* file commands
                     int readCommandLines = fileCommand(cbuf);
+*/
 
-                    if(commandWord1 != NULL){
-                        n = flagsfunction(flags, commandWord1, sizeof(cbuf), flags->position, &openld, &openrd, &descl,
-                                          &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
-                    } else if(readCommandLines != 0){
-                        for (int z = 0; z < readCommandLines; ++z) {
+                    inputLength = strlen(cbuf);
+                    inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
+                    checker = strstr(cbuf, "source");
 
-                            winwrite(CMW, output[z]);
-                            n = flagsfunction(flags, output[z], sizeof(cbuf), flags->position, &openld, &openrd, &descl,
-                                              &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
+                    /* check for file input commands */
+                    if(checker == cbuf) {
+                        strncpy(inputCopy, cbuf, inputLength);
+                        strtok_r(inputCopy, delimiter, &end);
+                        word2 = strtok_r(NULL, delimiter, &end);
+
+                        /* Get commands from fileread*/
+                        readCommandLines = fileRead(word2, output);
+
+                        /* Read from array and pass into flagfunction */
+                        for (x = 0; x < readCommandLines; ++x) {
+                            waddstr(w[4], output[x]);
+                            update_win(4);
+                            n = flagsfunction(flags, output[x], sizeof(cbuf), flags->position, &openld, &openrd,
+                                              &descl, &parentrd, lconn, right, inputDesignation, &lefttype, &righttype);
+
                         }
 
+                    /* check for other two word commands */
+                    }else if(commandWord1 != NULL){
+                        n = flagsfunction(flags, commandWord1, sizeof(cbuf), flags->position, &openld, &openrd, &descl,
+                                          &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
                     }else{
                         n = flagsfunction(flags, cbuf, sizeof(cbuf), flags->position, &openld, &openrd, &descl,
                                           &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
@@ -1285,7 +1212,8 @@ int main(int argc, char *argv[]) {
                     /* process commmands */
 
                     if(flags->reset == 1) {
-                        resetWindows();
+
+                        resetWindows(flags);
                         break;
                     } else {
 
@@ -1380,7 +1308,9 @@ int main(int argc, char *argv[]) {
                                 nerror("invalid command");
 
                         }/* End switch case*/
+
                     }/* end else */
+
             }
             /**END MAIN 0-FD SWITCH**/
 
@@ -1435,8 +1365,8 @@ int main(int argc, char *argv[]) {
                 endwin();
                 return -1;
             }
-    
-            openrd = 1;
+
+            openrd = 0;
             flags->rrport = (int) ntohs(rconn.sin_port);
             strcpy(flags->rraddr, inet_ntoa(rconn.sin_addr));
             maxfd = max(maxfd, descr);
@@ -1460,11 +1390,11 @@ int main(int argc, char *argv[]) {
         if (FD_ISSET(descl, &readset)) {
             /** REQUIRED VARIABLES = { masterset, opendld, openrd, descl, buffer, flags} **/
 
-            if(righttype){
+            if(righttype){                
                 sockettype(buf, &righttype, &openld, &openrd, &descl, &parentrd, flags, &masterset, LEFT);
             }
             else{
-                sockettype(buf, &righttype, &openld, &openrd, &descl, &descr, flags, &masterset, LEFT);
+                sockettype(buf, &righttype, &openld, &openrd, &descl, &descr, flags, &masterset, LEFT);            
             }
             reset_displays();
         }
@@ -1483,7 +1413,7 @@ int main(int argc, char *argv[]) {
 
 
             if( lefttype){
-                sockettype(buf, &lefttype, &openld, &openrd, &descr, &parentld, flags, &masterset, RIGHT);
+              sockettype(buf, &lefttype, &openld, &openrd, &descr, &parentld, flags, &masterset, RIGHT);
             }
             else{
                 sockettype(buf, &lefttype, &openld, &openrd, &descr, &descl, flags, &masterset, RIGHT);
@@ -1510,7 +1440,8 @@ int main(int argc, char *argv[]) {
             if(lefttype){
                 sockettype(buf, &lefttype, &openld, &openrd, &parentrd, &parentld, flags, &masterset, RIGHT);
             }
-                /*Case: passive left*/
+            
+            /*Case: passive left*/
             else{
                 sockettype(buf, &lefttype, &openld, &openrd, &parentrd, &descl, flags, &masterset, RIGHT);
             }
@@ -1520,13 +1451,13 @@ int main(int argc, char *argv[]) {
 
 
         /*****************************************************************/
-        /* LEFT ACTIVE DESCRIPTROR (find @tag: RSD)                       */
+        /* LEFT ACTIVE DESCRIPTROR (find @tag: LAD)                       */
         /*****************************************************************/
 
         /*
         *
         * Notes:
-        *   Active left socket, use parentld
+        *   
         *   
         *   
         */
@@ -1583,11 +1514,6 @@ int main(int argc, char *argv[]) {
     echo();
 
     /**WARNING: THESE TEST CASES MUST BE CHANGED ONCE WE GENERALIZED THE DESCRIPTORS BEHAVIOR**/
-    
-    /**MAYBE**/
-    /**MAYBE**/
-    /**MAYBE**/
-    
     if( parentld> 0){
         shutdown(parentld, 1);
     }
