@@ -77,7 +77,7 @@ int number(char*str){
 *Function:
 *           max
 *
-*Description: 
+*Description:
 *           compares value of two integers
 *
 *Relavent Arguments:
@@ -203,192 +203,192 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
 *            5  reserver for dropr
 */
 int flagsfunction( icmd  * flags, char * command, int len ,int position, unsigned char * openld, unsigned char * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right, int inputDesignation){
-        int value = -1;
-        winclear(INW, 1,0);
-        
-        /* output left (0), output right (1)*/
-        if (strncmp(command, "outputl", len) == 0) {
+    int value = -1;
+    winclear(INW, 1,0);
 
-            if(position != 1){
-                value = 1;
-                flags->output =0;
-            }
-            else{
-                nerror("Cant set head piggy output right\n");
-            }
-        }
+    /* output left (0), output right (1)*/
+    if (strncmp(command, "outputl", len) == 0) {
 
-
-        /* output left (0), output right (1)*/
-        if (strncmp(command, "outputr", len) == 0) {
-
-            if(position !=2){
-                value = 1;
-                flags->output = 1;
-            }else{
-                nerror("Cant set tail piggy output right");
-            }
-        }
-
-        /* */
-        if (strncmp(command, "output", len) == 0) {
+        if(position != 1){
             value = 1;
-            if (flags->output) {
-                wprintw(sw[INW], "output = right");
-                update_win(INW);
-            }
-            else{
-                wprintw(sw[INW], "output = left");
-                update_win(INW);
-            }
+            flags->output =0;
         }
-
-        /* */
-        if (strncmp(command, "dsplr", len) == 0) {
-
-            if(position !=1){
-                value = 1;
-                flags->dsprl = 0;
-                flags->dsplr = 1;
-            }
-            else{
-                nerror("Cant set dsplr for head piggy");
-
-            }
+        else{
+            nerror("Cant set head piggy output right\n");
         }
+    }
 
-        /* */
-        if (strncmp(command, "dsprl", len) == 0) {
 
-            if(position != 2){
-                value = 1;
-                flags->dsprl = 1;
-                flags->dsplr = 0;
-            }
-            else{
-                nerror("Cant set dsprl for tail piggy");
-            }
-        }
+    /* output left (0), output right (1)*/
+    if (strncmp(command, "outputr", len) == 0) {
 
-        /* */
-        if (strncmp(command, "display", len) == 0) {
+        if(position !=2){
             value = 1;
-            if(flags->dsprl){
-                winwrite(INW, "display right\n");
-            }
-            else{
-                winwrite(INW, "display left\n");
-            }
+            flags->output = 1;
+        }else{
+            nerror("Cant set tail piggy output right");
         }
+    }
 
-        /* */
-        if (strncmp(command, "persl", len) == 0) {
-            value = 2;
-            flags->persl = 1;
-            *openld = 1;
-
+    /* */
+    if (strncmp(command, "output", len) == 0) {
+        value = 1;
+        if (flags->output) {
+            wprintw(sw[INW], "output = right");
+            update_win(INW);
         }
-
-        /* */
-        if (strncmp(command, "persr", len) == 0) {
-            value = 3;
-            flags->persr = 1;
-            *openrd = 1;
-
+        else{
+            wprintw(sw[INW], "output = left");
+            update_win(INW);
         }
+    }
 
-        /* */
-        if (strncmp(command, "dropl", len) == 0) {
-            value = 4;
-            flags->dropl = 1;
-        }
+    /* */
+    if (strncmp(command, "dsplr", len) == 0) {
 
-        /* */
-        if (strncmp(command, "dropr", len) == 0) {
-            value = 5;
-            flags->dropr = 1;
-            *openrd = 0;
-            shutdown( *rd, 2);
-        }
-
-        /* */
-        if (strncmp(command, "right", len) == 0){
+        if(position !=1){
             value = 1;
-            winclear(INW);
-            wmove(sw[INW], 0,0);
+            flags->dsprl = 0;
+            flags->dsplr = 1;
+        }
+        else{
+            nerror("Cant set dsplr for head piggy");
+
+        }
+    }
+
+    /* */
+    if (strncmp(command, "dsprl", len) == 0) {
+
+        if(position != 2){
+            value = 1;
+            flags->dsprl = 1;
+            flags->dsplr = 0;
+        }
+        else{
+            nerror("Cant set dsprl for tail piggy");
+        }
+    }
+
+    /* */
+    if (strncmp(command, "display", len) == 0) {
+        value = 1;
+        if(flags->dsprl){
+            winwrite(INW, "display right\n");
+        }
+        else{
+            winwrite(INW, "display left\n");
+        }
+    }
+
+    /* */
+    if (strncmp(command, "persl", len) == 0) {
+        value = 2;
+        flags->persl = 1;
+        *openld = 1;
+
+    }
+
+    /* */
+    if (strncmp(command, "persr", len) == 0) {
+        value = 3;
+        flags->persr = 1;
+        *openrd = 1;
+
+    }
+
+    /* */
+    if (strncmp(command, "dropl", len) == 0) {
+        value = 4;
+        flags->dropl = 1;
+    }
+
+    /* */
+    if (strncmp(command, "dropr", len) == 0) {
+        value = 5;
+        flags->dropr = 1;
+        *openrd = 0;
+        shutdown( *rd, 2);
+    }
+
+    /* */
+    if (strncmp(command, "right", len) == 0){
+        value = 1;
+        winclear(INW);
+        wmove(sw[INW], 0,0);
+        wprintw(sw[INW], "%s:%hu",flags->localaddr, flags->llport);
+
+        if(*openrd == 1){
             wprintw(sw[INW], "%s:%hu",flags->localaddr, flags->llport);
-                        
-            if(*openrd == 1){
-                wprintw(sw[INW], "%s:%hu",flags->localaddr, flags->llport);
-            }
-            else{
-                wprintw(sw[INW], ":*:*");
-            }
-
-            wmove(sw[INW], 1, 0);
-            if(*openrd){                
-                wprintw(sw[INW], "CONNECTED");
-            }
-            else{                
-                waddstr(sw[INW], "DISCONNECTED");
-            }
-            update_win(INW);
+        }
+        else{
+            wprintw(sw[INW], ":*:*");
         }
 
-        /* left side connection*/
-        if (strncmp(command, "left", len) == 0){
-            winclear(INW);
-            wmove(sw[INW], 0,0);
+        wmove(sw[INW], 1, 0);
+        if(*openrd){
+            wprintw(sw[INW], "CONNECTED");
+        }
+        else{
+            waddstr(sw[INW], "DISCONNECTED");
+        }
+        update_win(INW);
+    }
+
+    /* left side connection*/
+    if (strncmp(command, "left", len) == 0){
+        winclear(INW);
+        wmove(sw[INW], 0,0);
+        value = 1;
+        if( *openld ){
+            wprintw(sw[INW], "%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);
+        }
+        else{
+            wprintw(sw[INW], "*:*");
+        }
+
+        wprintw(sw[INW], ":%s:%hu", flags->localaddr, flags->llport);
+
+        wmove(sw[INW], 1, 0);
+        if( *openld){
+            wprintw(sw[INW], "LISTENING");
+        }
+        else{
+            wprintw(sw[INW], "DISCONNECTED");
+        }
+        update_win(INW);
+    }
+
+    if (strncmp(command, "loopr", len) == 0) {
+        value = 1;
+        flags->loopr = 1;  /* Takes data to be written to the right and sends left  */
+        flags->output = 0; /* Output becomes left with loopr                        */
+
+    }
+    if (strncmp(command, "loopl", len) == 0) {
+        value = 1;
+        flags->loopl = 1;   /* Takes data to be written to the left and send right  */
+        flags->output = 1;  /* Output becomes right                                 */
+    }
+    if (inputDesignation != -1){
+        value = 1;
+    }
+    if (strncmp(command, "outputl", len) == 0) {
+
+        if(position != 1){
             value = 1;
-            if( *openld ){
-                wprintw(sw[INW], "%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);                
-            }
-            else{
-                wprintw(sw[INW], "*:*");                
-            }
+            flags->output =0;
+        }
+        else{
+            nerror("Cant set head piggy output right");
+        }
+    }
+    if (strncmp(command, "reset", len) == 0) {
+        value = 1;
+        flags->reset = 1;
+    }
 
-            wprintw(sw[INW], ":%s:%hu", flags->localaddr, flags->llport);
-
-            wmove(sw[INW], 1, 0);
-            if( *openld){
-                wprintw(sw[INW], "LISTENING");               
-            }
-            else{
-                wprintw(sw[INW], "DISCONNECTED");                
-            }
-            update_win(INW);
-        }
-
-        if (strncmp(command, "loopr", len) == 0) {
-            value = 1;
-            flags->loopr = 1;  /* Takes data to be written to the right and sends left  */
-            flags->output = 0; /* Output becomes left with loopr                        */
-
-        }
-        if (strncmp(command, "loopl", len) == 0) {
-            value = 1;
-            flags->loopl = 1;   /* Takes data to be written to the left and send right  */
-            flags->output = 1;  /* Output becomes right                                 */
-        }
-        if (inputDesignation != -1){
-            value = 1;
-        }
-        if (strncmp(command, "outputl", len) == 0) {
-
-            if(position != 1){
-                value = 1;
-                flags->output =0;
-            }
-            else{
-                nerror("Cant set head piggy output right");
-            }
-        }
-        if (strncmp(command, "reset", len) == 0) {
-            value = 1;
-            flags->reset = 1;
-        }
-    
-        return value;
+    return value;
 }
 /*End flagsfunction*/
 
@@ -436,7 +436,7 @@ char *strdup(const char *str){
 *           sockettype
 *
 *Description:
-*           performs the respective 
+*           performs the respective
 *
 *Relavent Arguments:
 
@@ -447,198 +447,198 @@ char *strdup(const char *str){
 
 void sockettype(char *buf, unsigned char *stype, unsigned char * openld, unsigned char * openrd, int * local, int * remote, icmd * flags, fd_set *masterset){
     int n = 0;
-    
+
     /* Passive socket (0) */
     if( stype){
-                bzero(buf, sizeof(buf))   ;
-                n = recv(*local, buf, sizeof(buf), 0);
+        bzero(buf, sizeof(buf))   ;
+        n = recv(*local, buf, sizeof(buf), 0);
 
-                if (n < 0) {
-                    nerror("remote left recv error ");
-                }
-                if (n == 0) {
-                    nerror("remote left connection closed");
-                    *openld = 0;
-                    
-                    /**WARNING: RECONNECTION PSEUDOCODE CASES**/
-                    
-                    //if( active right && persr, reconnect)
-                    //    SET FLAG--> flags->persr = 2;
-                    //    Note: reconnection will be attempted at end of SELECT LOOP                                
-                    //
-                    //else we have a passive right, can't reconnect
-                    // display warning: "reconnection error for local right descriptor, is passive"
-                    
-                    /**NOTE**/
-                    /* Since n == 0, okay to remove*/
-                    FD_CLR(*local, masterset);
-                }
+        if (n < 0) {
+            nerror("remote left recv error ");
+        }
+        if (n == 0) {
+            nerror("remote left connection closed");
+            *openld = 0;
 
-                /*
-                * move cursor to window
-                * printw
-                *
-                */
-                /* If dsplr is set we print data coming fr0m the left*/
-                /*`q*/
-                
-                winwrite(CMW, "d1");
-                getyx(sw[ULW], yul, xul);
-                if(buf[0]== 13){
-                    yul++;
-                    xul= 0;
-                }
-                wmove(sw[ULW], yul, xul);
-                wprintw(sw[ULW], "%c",buf[0]);
-                //scroll(sw[ULW]);
-                update_win(ULW);
-                
+            /**WARNING: RECONNECTION PSEUDOCODE CASES**/
 
-                /* Loop data right if set*/
-                if (flags->loopr && *openld) {
-                    n = send(*local, buf, sizeof(buf), 0);
+            //if( active right && persr, reconnect)
+            //    SET FLAG--> flags->persr = 2;
+            //    Note: reconnection will be attempted at end of SELECT LOOP
+            //
+            //else we have a passive right, can't reconnect
+            // display warning: "reconnection error for local right descriptor, is passive"
 
-                    if (n < 0) {
-                        nerror("remote left send error");                        
-                    }
-                    if (n == 0) {
-                        /*NOTE: persl must be handled differently in Piggy3*/
-                        nerror("remote left connection closed");
-                    }
-                    bzero(buf, sizeof(buf));
-                }
+            /**NOTE**/
+            /* Since n == 0, okay to remove*/
+            FD_CLR(*local, masterset);
+        }
 
-                /* Check if data needs to be forwarded */
-                if (*openrd && flags->output) {
-                    n = send(*remote, buf, sizeof(buf), 0);
+        /*
+        * move cursor to window
+        * printw
+        *
+        */
+        /* If dsplr is set we print data coming fr0m the left*/
+        /*`q*/
 
-                    if (n < 0) {
-                        *openrd = 0;
-                        nerror("remote right send error");                        
-                    }
-                    if (n == 0) {
-                        *openrd = 0;
-                        /*NOTE: persl must be handled differently in Piggy3*/
-                        /* Set reconnect flag if persl is set*/
-                        nerror("remote right connection closed 1");
-                    }
-                    bzero(buf, sizeof(buf));
-                }
+        winwrite(CMW, "d1");
+        getyx(sw[ULW], yul, xul);
+        if(buf[0]== 13){
+            yul++;
+            xul= 0;
+        }
+        wmove(sw[ULW], yul, xul);
+        wprintw(sw[ULW], "%c",buf[0]);
+        //scroll(sw[ULW]);
+        update_win(ULW);
 
-                /* b.0*/
-                /* Check if output is set to left*/
-                /**WARNING SOURCE OF CYCLIC DATA PASSING**/
-                /**SET ANOTHER  CONDITION "PASSING VARIABLE" **/
-                if (*openld && !flags->output && (flags->position != 2)) {
-                    /* b.0*/
-                    n = send(*local, buf, sizeof(buf), 0);
 
-                    if (n < 0) {
-                        *openld = 0;
-                        nerror("remote left send error ");
-                    }
-                    if (n == 0) {
-                        *openld = 0;
-                        /*NOTE: persl must be handled differently in Piggy3*/                                                
-                        /* Set reconnect flag if persl is set*/
-                        nerror("remote left connection closed ");
-                    }
-                    bzero(buf, sizeof(buf));
-                }        
-    }
-    /*Active descriptor (1)*/
-    else{
-           bzero(buf, sizeof(buf));
-            n = recv(*local, buf, sizeof(buf), 0);
-            //winwrite(BRW, "2");
+        /* Loop data right if set*/
+        if (flags->loopr && *openld) {
+            n = send(*local, buf, sizeof(buf), 0);
+
+            if (n < 0) {
+                nerror("remote left send error");
+            }
+            if (n == 0) {
+                /*NOTE: persl must be handled differently in Piggy3*/
+                nerror("remote left connection closed");
+            }
+            bzero(buf, sizeof(buf));
+        }
+
+        /* Check if data needs to be forwarded */
+        if (*openrd && flags->output) {
+            n = send(*remote, buf, sizeof(buf), 0);
+
             if (n < 0) {
                 *openrd = 0;
-                nerror("remote right recv error ");                
+                nerror("remote right send error");
             }
-
             if (n == 0) {
-                nerror("remote right connection closed 2");
                 *openrd = 0;
-                
-                /**WARNING: RECONNECTION PSEUDOCODE CASES**/
-                
-                //if( active left && persl, reconnect)
-                //    SET FLAG--> flags->persl = 1;
-                //    Note: reconnection will be attempted at end of SELECT LOOP                                
-                //
-                //else we have a passive left, can't reconnect
-                // display warning: "reconnection error for local left descriptor, is passive"                
-                
-                /**NOTE**/
-                /* Since n == 0, okay to remove*/
-                FD_CLR(*local, masterset);
+                /*NOTE: persl must be handled differently in Piggy3*/
+                /* Set reconnect flag if persl is set*/
+                nerror("remote right connection closed 1");
             }
+            bzero(buf, sizeof(buf));
+        }
 
-            winwrite(CMW, "d2");
-            /* Display data arriving on right side in BRW*/
-            getyx(sw[BRW], ybr, xbr);
-            if(buf[0]== 13){
-                ybr++;
-                xbr= 0;
+        /* b.0*/
+        /* Check if output is set to left*/
+        /**WARNING SOURCE OF CYCLIC DATA PASSING**/
+        /**SET ANOTHER  CONDITION "PASSING VARIABLE" **/
+        if (*openld && !flags->output && (flags->position != 2)) {
+            /* b.0*/
+            n = send(*local, buf, sizeof(buf), 0);
+
+            if (n < 0) {
+                *openld = 0;
+                nerror("remote left send error ");
             }
-            
-            wmove(sw[BRW], ybr, xbr);
-            wprintw(sw[BRW], "%c",buf[0]);
-            //scroll(sw[BRW]);
-            update_win(BRW);
-
-
-            /* Check for constant DROPL string*/
-            if (strcmp(buf, DROPL) == 0) {
-                winwrite(CMW, "remote right side dropn ");
-                *openrd = 0;
+            if (n == 0) {
+                *openld = 0;
+                /*NOTE: persl must be handled differently in Piggy3*/
+                /* Set reconnect flag if persl is set*/
+                nerror("remote left connection closed ");
             }
-                /* Check for constant PERSL string*/
-            else if (strcmp(buf, PERSL) == 0) {
-                winwrite(CMW, "remote right side reconnection ");
-                *openrd = 1;
-            } else {
-                /* If dsprl is set we print data coming frm the right*/                                                    
-
-                if (flags->loopl == 1) {
-                    n = send(*remote, buf, sizeof(buf), 0);
-                    if (n < 0) {
-                        *openrd = 0;
-                        nerror("send right error ");                        
-                    }
-                    if (n == 0) {
-                        *openrd = 0;
-                        flags->persr = 2;                        
-                    }
-                    bzero(buf, sizeof(buf));
-                }
-
-                /* Data only left forwarded if middle piggy */
-                if (*openld && !flags->output) {
-                    n = send(*local, buf, sizeof(buf), 0);
-                    if (n < 0) {
-                        *openld = 0;
-                        nerror("send left error ");                        
-                    }
-
-                    if (n == 0) {
-                        *openld = 0;
-                        flags->persl = 2;                        
-                    }
-                }
-
-
-                if (*openrd && flags->output) {
-                    n = send(*remote, buf, sizeof(buf), 0);
-                    if (n < 0) {
-                        nerror("send right error ");                        
-                    }
-                    if (n == 0) {
-                        flags->persr = 2;                        
-                    }
-                    bzero(buf, sizeof(buf));
-                }
-            }        
+            bzero(buf, sizeof(buf));
+        }
     }
-    
+        /*Active descriptor (1)*/
+    else{
+        bzero(buf, sizeof(buf));
+        n = recv(*local, buf, sizeof(buf), 0);
+        //winwrite(BRW, "2");
+        if (n < 0) {
+            *openrd = 0;
+            nerror("remote right recv error ");
+        }
+
+        if (n == 0) {
+            nerror("remote right connection closed 2");
+            *openrd = 0;
+
+            /**WARNING: RECONNECTION PSEUDOCODE CASES**/
+
+            //if( active left && persl, reconnect)
+            //    SET FLAG--> flags->persl = 1;
+            //    Note: reconnection will be attempted at end of SELECT LOOP
+            //
+            //else we have a passive left, can't reconnect
+            // display warning: "reconnection error for local left descriptor, is passive"
+
+            /**NOTE**/
+            /* Since n == 0, okay to remove*/
+            FD_CLR(*local, masterset);
+        }
+
+        winwrite(CMW, "d2");
+        /* Display data arriving on right side in BRW*/
+        getyx(sw[BRW], ybr, xbr);
+        if(buf[0]== 13){
+            ybr++;
+            xbr= 0;
+        }
+
+        wmove(sw[BRW], ybr, xbr);
+        wprintw(sw[BRW], "%c",buf[0]);
+        //scroll(sw[BRW]);
+        update_win(BRW);
+
+
+        /* Check for constant DROPL string*/
+        if (strcmp(buf, DROPL) == 0) {
+            winwrite(CMW, "remote right side dropn ");
+            *openrd = 0;
+        }
+            /* Check for constant PERSL string*/
+        else if (strcmp(buf, PERSL) == 0) {
+            winwrite(CMW, "remote right side reconnection ");
+            *openrd = 1;
+        } else {
+            /* If dsprl is set we print data coming frm the right*/
+
+            if (flags->loopl == 1) {
+                n = send(*remote, buf, sizeof(buf), 0);
+                if (n < 0) {
+                    *openrd = 0;
+                    nerror("send right error ");
+                }
+                if (n == 0) {
+                    *openrd = 0;
+                    flags->persr = 2;
+                }
+                bzero(buf, sizeof(buf));
+            }
+
+            /* Data only left forwarded if middle piggy */
+            if (*openld && !flags->output) {
+                n = send(*local, buf, sizeof(buf), 0);
+                if (n < 0) {
+                    *openld = 0;
+                    nerror("send left error ");
+                }
+
+                if (n == 0) {
+                    *openld = 0;
+                    flags->persl = 2;
+                }
+            }
+
+
+            if (*openrd && flags->output) {
+                n = send(*remote, buf, sizeof(buf), 0);
+                if (n < 0) {
+                    nerror("send right error ");
+                }
+                if (n == 0) {
+                    flags->persr = 2;
+                }
+                bzero(buf, sizeof(buf));
+            }
+        }
+    }
+
 }

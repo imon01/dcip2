@@ -23,9 +23,10 @@
 
 #define DEFAULT 36795 /* default protocol port number, booknumber */
 #define QLEN 6          /* size of request queue */
-#define MAXSIZE 256
+#define MAXSIZE 8
 #define NUMWINS 7
 #define RES_BUF_SIZE 80
+#define NULLCONNECTION 0;
 
 /* Window definitions */
 #define inLeft 0    /* Top left window */
@@ -35,13 +36,14 @@
 
 
 
+#define DROPL "REMOTE-LEFT-DROP"
+#define PERSL "REMOTE-LEFT-CONN"
+#define LEFT  "left"
+#define Right "right"
+
 WINDOW *w[NUMWINS];
 WINDOW *sw[NUMWINS];
 WINDOW wh[NUMWINS];
-
-
-
-
 
 
 struct hostent;
@@ -82,6 +84,16 @@ typedef struct flags{
     char source    [100]; /* Source file*/
 }icmd;
 
+/***************************************************/
+/* Windows cursor postions 						   */
+/***************************************************/
+short yul, xul;				/* Top left window position variables		*/
+short yur, xur;				/* Top right window position variables		*/
+short ybl, xbl;				/* Bottom left window position variables	*/
+short ybr, xbr;				/* Bottom right window position variables	*/
+short ycm, xcm;				/* Command window position variables	    */
+short yiw, xiw;               /* I/O window position variables	        */
+
 
 int number(char*);
 
@@ -95,8 +107,12 @@ char fileRead(const char *, char *[]);
 
 int sock_init(int, int, int, char *, struct sockaddr_in , struct hostent *);
 
-int flagsfunction(icmd *, char *, int , int, int *, int *, int *, int *, struct sockaddr_in, struct sockaddr_in, int inputDesignation);
+int flagsfunction(icmd *, char *, int , int, unsigned char *, unsigned char *, int *, int *, struct sockaddr_in, struct sockaddr_in, int inputDesignation);
 
-//void connectopt(icmd *, fd_set *,  int *, int *, int *, int *, struct sockaddr_in, struct hosten *);
+/*Function ID: socket type, buffer adddres, descriptor address, flags struct address, master fd_set address
+ */
+void sockettype(char *, char *, unsigned char*, unsigned char *, unsigned char *, int *, int *, icmd * , fd_set *);
+
+
 
 #endif
