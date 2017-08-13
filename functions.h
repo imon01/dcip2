@@ -11,14 +11,14 @@
 #include <arpa/inet.h>
 
 /* Window defintion constants*/
-
 #define ULW 0 /* upper left window      */
 #define URW 1 /* upper right window     */
 #define BLW 2 /* bottom left window     */
 #define BRW 3 /* bottom right window    */
 #define CMW 4 /* command window  */
 #define INW 5 /* inputs window   */
-#define ERW 6 /* errors menu     */
+#define ERW 6 /* errors window     */
+
 
 
 #define DEFAULT 36795 /* default protocol port number, booknumber */
@@ -28,16 +28,12 @@
 #define RES_BUF_SIZE 80
 #define NULLCONNECTION 10;
 
-/* Window definitions */
-#define inLeft 0    /* Top left window */
-#define outRight 1  /* Top right window*/
-#define outLeft 2   /* Bottom left window*/
-# define inRight 3  /* Bottom right window*/
-
-
 
 #define DROPL "REMOTE-LEFT-DROP"
 #define PERSL "REMOTE-LEFT-CONN"
+#define LEFT  "left"
+#define RIGHT "right"
+
 
 WINDOW *w[NUMWINS];
 WINDOW *sw[NUMWINS];
@@ -83,32 +79,31 @@ typedef struct flags{
 }icmd;
 
 /***************************************************/
-/* Windows cursor postions 						   */
+/* Windows cursor postions                          */
 /***************************************************/
-short yul, xul;				/* Top left window position variables		*/
-short yur, xur;				/* Top right window position variables		*/
-short ybl, xbl;				/* Bottom left window position variables	*/
-short ybr, xbr;				/* Bottom right window position variables	*/
-short ycm, xcm;				/* Command window position variables	    */
-short yiw, xiw;               /* I/O window position variables	        */
+short yul, xul;                         /* Top left window position variables            */
+short yur, xur;                         /* Top right window position variables           */
+short ybl, xbl;                         /* Bottom left window position variables         */
+short ybr, xbr;                         /* Bottom right window position variables        */
+short ycm, xcm;                         /* Command window position variables             */
+short yiw, xiw;                         /* I/O window position variables                */
 
 
 int number(char*);
 
 int max(int, int);
 
-char *strdup(const char *);
+void nerror(char *);
 
-void nerror(char *str);
+char *strdup(const char *);
 
 char fileRead(const char *, char *[]);
 
 int sock_init(int, int, int, char *, struct sockaddr_in , struct hostent *);
 
-int flagsfunction(icmd *, char *, int , int, unsigned char *, unsigned char *, int *, int *, struct sockaddr_in, struct sockaddr_in, int inputDesignation);
+void sockettype(char *, unsigned char*, unsigned char *, unsigned char *, int *, int *, icmd * , fd_set *, char *);
 
-void sockettype(char *, unsigned char*, unsigned char *, unsigned char *, int *, int *, icmd * , fd_set *);
-
+int flagsfunction(icmd *, char *, int , int, unsigned char *, unsigned char *, int *, int *, struct sockaddr_in, struct sockaddr_in, int , unsigned char *, unsigned char *);
 
 
 #endif

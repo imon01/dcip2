@@ -482,8 +482,7 @@ int main(int argc, char *argv[]) {
     char *output[MAXSIZE];
     char cbuf[RES_BUF_SIZE];
     unsigned char lefttype;             /* (0) passive left, else (1) active       */
-    unsigned char righttype;            /* (0) passive right, else (1) active      */
-    unsigned char argvars = 0;          /* (0) no command line paramters, else (1) */
+    unsigned char righttype;            /* (0) passive right, else (1) active      */    
 
     /***************************************************/
     /* Control flow variables                          */
@@ -645,10 +644,10 @@ int main(int argc, char *argv[]) {
 
 
 
-    /*********************************/
-    /*  Parsing argv[]               */
-    /*********************************/
-    if(argc > 1){
+    /*************************************/
+    /*  Parsing argv[], if argc > 1      */
+    /*************************************/
+    //if(argc > 1){
         while ((ch = getopt_long_only(argc, argv, "a::l::r::d::e::f::g::h::i::t::k:z:", long_options, &indexptr)) != -1) {
             switch (ch) {
                 case 'a':
@@ -666,7 +665,7 @@ int main(int argc, char *argv[]) {
                         /* read from array and pass into flag function*/
                         for (x = 0; x < readLines; ++x) {
                             n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &descl,
-                                            &parentrd, right, lconn, inputDesignation);
+                                            &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
 
                             if (n < 0) {
                                 nerror("invalid command");
@@ -681,7 +680,7 @@ int main(int argc, char *argv[]) {
                         /* read from array and pass into flag function  */
                         for (x = 0; x < readLines; ++x) {
                             n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &descl,
-                                            &parentrd, right, lconn, inputDesignation);
+                                            &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
 
                             if (n < 0) {
                                 nerror("invalid command");
@@ -930,14 +929,14 @@ int main(int argc, char *argv[]) {
                 }
 
                 flags->output = 0;
-                openld = 1;
+                openld = 0;
                 openrd = 0;
                 lefttype = 0;
                 righttype = NULLCONNECTION;
                 FD_SET(parentld, &masterset);
         }
         /*end switch */
-    }
+    //}
     
     /*********************************/
     /*    Getting local IP address   */
@@ -1015,7 +1014,7 @@ int main(int argc, char *argv[]) {
         if (FD_ISSET(0, &readset)) {
             win_clear(CMW);
             bzero(buf, sizeof(buf));
-
+            
             tempright = descr > 0 ? descr : parentrd; 
             templeft  = descl > 0 ? descl : parentld;
             
@@ -1204,9 +1203,7 @@ int main(int argc, char *argv[]) {
                     update_win(CMW);
 
                     while (1) {
-                        win_clear(BRW);
-                        wprintw(sw[BRW], "%d",c);
-                        update_win(BRW);
+
 
                         /* clear input window before new command requested */
                         wclrtoeol(sw[INW]);
@@ -1270,18 +1267,18 @@ int main(int argc, char *argv[]) {
 
                     if(commandWord1 != NULL){
                         n = flagsfunction(flags, commandWord1, sizeof(cbuf), flags->position, &openld, &openrd, &descl,
-                                          &parentrd, right, lconn, inputDesignation);
+                                          &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
                     } else if(readCommandLines != 0){
                         for (int z = 0; z < readCommandLines; ++z) {
 
                             winwrite(CMW, output[z]);
                             n = flagsfunction(flags, output[z], sizeof(cbuf), flags->position, &openld, &openrd, &descl,
-                                              &parentrd, right, lconn, inputDesignation);
+                                              &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
                         }
 
                     }else{
                         n = flagsfunction(flags, cbuf, sizeof(cbuf), flags->position, &openld, &openrd, &descl,
-                                          &parentrd, right, lconn, inputDesignation);
+                                          &parentrd, right, lconn, inputDesignation, &lefttype, &righttype);
                     }
 
 
@@ -1409,7 +1406,8 @@ int main(int argc, char *argv[]) {
                 endwin();
                 return -1;
             }
-
+            
+            openld = 1;
             flags->llport = (int) ntohs(lconn.sin_port);
             strcpy(flags->lladdr, inet_ntoa(lconn.sin_addr));
             maxfd = max(maxfd, descl);
@@ -1437,7 +1435,8 @@ int main(int argc, char *argv[]) {
                 endwin();
                 return -1;
             }
-
+    
+            openrd = 1;
             flags->rrport = (int) ntohs(rconn.sin_port);
             strcpy(flags->rraddr, inet_ntoa(rconn.sin_addr));
             maxfd = max(maxfd, descr);
@@ -1462,10 +1461,10 @@ int main(int argc, char *argv[]) {
             /** REQUIRED VARIABLES = { masterset, opendld, openrd, descl, buffer, flags} **/
 
             if(righttype){
-                sockettype(buf, &righttype, &openld, &openrd, &descl, &parentrd, flags, &masterset);
+                sockettype(buf, &righttype, &openld, &openrd, &descl, &parentrd, flags, &masterset, LEFT);
             }
             else{
-                sockettype(buf, &righttype, &openld, &openrd, &descl, &descr, flags, &masterset);
+                sockettype(buf, &righttype, &openld, &openrd, &descl, &descr, flags, &masterset, LEFT);
             }
             reset_displays();
         }
@@ -1484,10 +1483,10 @@ int main(int argc, char *argv[]) {
 
 
             if( lefttype){
-                sockettype(buf, &lefttype, &openld, &openrd, &descr, &parentld, flags, &masterset);
+                sockettype(buf, &lefttype, &openld, &openrd, &descr, &parentld, flags, &masterset, RIGHT);
             }
             else{
-                sockettype(buf, &lefttype, &openld, &openrd, &descr, &descl, flags, &masterset);
+                sockettype(buf, &lefttype, &openld, &openrd, &descr, &descl, flags, &masterset, RIGHT);
             }
             reset_displays();
         }
@@ -1509,11 +1508,11 @@ int main(int argc, char *argv[]) {
 
             /*Case: active left*/
             if(lefttype){
-                sockettype(buf, &lefttype, &openld, &openrd, &parentrd, &parentld, flags, &masterset);
+                sockettype(buf, &lefttype, &openld, &openrd, &parentrd, &parentld, flags, &masterset, RIGHT);
             }
                 /*Case: passive left*/
             else{
-                sockettype(buf, &lefttype, &openld, &openrd, &parentrd, &descl, flags, &masterset);
+                sockettype(buf, &lefttype, &openld, &openrd, &parentrd, &descl, flags, &masterset, RIGHT);
             }
             reset_displays();
         }/* End ready parentrd*/
@@ -1527,7 +1526,7 @@ int main(int argc, char *argv[]) {
         /*
         *
         * Notes:
-        *   
+        *   Active left socket, use parentld
         *   
         *   
         */
@@ -1537,11 +1536,11 @@ int main(int argc, char *argv[]) {
 
             /*Case: active left*/
             if(righttype){
-                sockettype(buf, &righttype, &openld, &openrd, &parentld, &parentrd, flags, &masterset);
+                sockettype(buf, &righttype, &openld, &openrd, &parentld, &parentrd, flags, &masterset, LEFT);
             }
                 /*Case: passive left*/
             else{
-                sockettype(buf, &righttype, &openld, &openrd, &parentld, &descr, flags, &masterset);
+                sockettype(buf, &righttype, &openld, &openrd, &parentld, &descr, flags, &masterset, LEFT);
             }
             reset_displays();
         }/* End ready parentrd*/
