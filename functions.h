@@ -51,21 +51,26 @@ typedef struct flags{
     int rlport;                 /* Right side listening port                    */
 
 
-    unsigned char position;
-    unsigned char noleft;
-    unsigned char noright;
-    unsigned char output; /* output left (0), output right (1)*/
+    
     unsigned char dsplr;
-    unsigned char dsprl;
-    unsigned char reconl;
-    unsigned char display;
+    unsigned char dsprl;   
     unsigned char dropr;
     unsigned char dropl;
     unsigned char persl;
     unsigned char persr;
     unsigned char loopr;
     unsigned char loopl;
-    unsigned char reset;
+    unsigned char reset;    
+    unsigned char reconl;
+    unsigned char reconr;
+    unsigned char noleft;
+    unsigned char output; /* output left (0), output right (1)*/    
+    unsigned char setupl;
+    unsigned char setupr;    
+    unsigned char noright;    
+    unsigned char display;
+    unsigned char position;
+    
     char lraddr    [64];
     char rraddr    [64];
     char lladdr    [64];
@@ -85,12 +90,13 @@ short yur, xur;                         /* Top right window position variables  
 short ybl, xbl;                         /* Bottom left window position variables         */
 short ybr, xbr;                         /* Bottom right window position variables        */
 short ycm, xcm;                         /* Command window position variables             */
-short yiw, xiw;                         /* I/O window position variables                */
+short yiw, xiw;                         /* I/O window position variables                 */
 
 
 int number(char*);
 
 int max(int, int);
+
 
 void nerror(char *);
 

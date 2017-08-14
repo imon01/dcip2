@@ -401,11 +401,23 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, unsigne
         value = 1;
     }
     if (strncmp(command, "lraddr", len) == 0) {
+        flags->setupl += 20;
         value = 1;
     }
     if (strncmp(command, "rraddr", len) == 0) {
+        flags->setupr += 20;
         value = 1;
     }
+    
+    if (strcmp(command, "noleft") == 0) {
+        flags->setupr += 10;
+        value = 1;
+    }    
+    
+    if (strcmp(command, "noright") == 0) {
+        flags->setupl += 10;
+        value = 1;
+    }        
     return value;
 }
 /*End flagsfunction*/
@@ -469,6 +481,8 @@ void flags_init(icmd * flags){
     flags->lrport = DEFAULT;
     flags->rlport = DEFAULT;
 
+    flags->setupl = 0;
+    flags->setupr = 0;
     flags->position = 0;
     flags->noleft = 0;
     flags->noright = 0;
@@ -485,8 +499,7 @@ void flags_init(icmd * flags){
     bzero(flags->lraddr, sizeof(flags->rraddr));    /* Left connected address                                         */
     bzero(flags->localaddr, sizeof(flags->rraddr));    /* Local address                                               */
     bzero(flags->connectl, sizeof(flags->connectl));
-    bzero(flags->connectr, sizeof(flags->connectr));
-    
+    bzero(flags->connectr, sizeof(flags->connectr));    
     bzero(flags->listenl, sizeof(flags->listenl));
     bzero(flags->listenr, sizeof(flags->listenr));
 }
@@ -542,8 +555,7 @@ void sockettype(char *buf, unsigned char *stype, unsigned char * openld, unsigne
         
     }
     else{
-        
-        winwrite(ERW, "strcmp(sockid, RIGHT) == 0");
+                
         winr =  BRW;
         wins = URW;
         loop = flags->loopr;
@@ -558,7 +570,8 @@ void sockettype(char *buf, unsigned char *stype, unsigned char * openld, unsigne
         strcpy( ebufr2, "remote right connection closed");
         strcpy( ebufs1, "remote left send error");
         strcpy( ebufs2, "remote left connection closed");
-    }        
+    }
+    
     
     bzero(buf, sizeof(buf));
     n = recv(*local, buf, sizeof(buf), 0);
@@ -569,20 +582,16 @@ void sockettype(char *buf, unsigned char *stype, unsigned char * openld, unsigne
     }
     if (n == 0) {
         *open1 = 0;
-        nerror(ebufr2);        
+        nerror(ebufr2);
+    }
         
-        /**WARNING: RECONNECTION PSEUDOCODE CASES**/
-        // WARNING: GENERALIZE RECONNECIOTN
-        //if( active right && persr, reconnect)
-        //    SET FLAG--> flags->persr = 2;
-        //    Note: reconnection will be attempted at end of SELECT LOOP                                
-        //
-        //else we have a passive right, can't reconnect
-        // display warning: "reconnection error for local right descriptor, is passive"
-        
-        /**NOTE**/
-        /* Since n == 0, okay to remove*/
-        FD_CLR(*local, masterset);
+    if(n <= 0){
+        if(stype && flags->persl && (strcmp(sockid, LEFT) == 0) ){
+            flags->reconl = 1;
+        }
+        if(stype && flags->persr && (strcmp(sockid, RIGHT) == 0) ){
+            flags->reconr = 1;
+        }
     }
         
     if(buf[0]== 13){
@@ -595,17 +604,12 @@ void sockettype(char *buf, unsigned char *stype, unsigned char * openld, unsigne
     wprintw(sw[winr], "%c",buf[0]);
     //scroll(sw[winr]);    
     update_win(winr);
-    
-    
-    
-    winwrite(CMW, "e6");
-    winwrite(ERW, (char *) loop);
+
     
     /* Loop data if set*/
     if (loop) {
-        winwrite( CMW, " e7.a");
-        n = send(*loopdesc, buf, sizeof(buf), 0);        
-        winwrite( CMW, " e7.a");
+        
+        n = send(*loopdesc, buf, sizeof(buf), 0);                
         if (n < 0) {
             *open2 = 0;
             nerror(ebufs1);                        
@@ -620,15 +624,12 @@ void sockettype(char *buf, unsigned char *stype, unsigned char * openld, unsigne
         if(buf[0]== 13){
             y++;
             x= 0;
-        }
-        winwrite( CMW, " e7.b");
+        }        
         wmove(sw[wins], y, x);
         wprintw(sw[wins], "%c",buf[0]);
         //scroll(sw[wins]);
         update_win(wins);
-        bzero(buf, sizeof(buf));
-        
-        winwrite( CMW, " e7");
+        bzero(buf, sizeof(buf));        
         
     }        
 
@@ -656,15 +657,12 @@ void sockettype(char *buf, unsigned char *stype, unsigned char * openld, unsigne
         wmove(sw[wins], y, x);
         wprintw(sw[wins], "%c",buf[0]);
         //scroll(sw[wins]);
-        update_win(wins);
-        
+        update_win(wins);        
         bzero(buf, sizeof(buf));
-        
-        winwrite( CMW, " e8");
+                
     }
     
-    /* Check if output is set to left*/
-    /**WARNING SOURCE OF CYCLIC DATA PASSING**/
+    
     /**SET ANOTHER  CONDITION "PASSING VARIABLE" **/
     if ( !flags->output && (flags->position != 2)  && *openld & !stype ) {
         n = send(*local, buf, sizeof(buf), 0);
@@ -679,8 +677,7 @@ void sockettype(char *buf, unsigned char *stype, unsigned char * openld, unsigne
             /* Set reconnect flag if persl is set*/
             nerror("remote left connection closed ");
         }
-        bzero(buf, sizeof(buf));
-        winwrite( CMW, " e9");
+        bzero(buf, sizeof(buf));        
     }        
     
 }

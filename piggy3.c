@@ -299,6 +299,7 @@ static struct option long_options[] ={
         {"persr",   optional_argument, NULL, 'h'},
         {"llport",  optional_argument, NULL, 't'},
         {"rraddr",  required_argument, NULL, 'z'},
+        {"lraddr",  required_argument, NULL, 'b'},
         {"rrport",  optional_argument, NULL, 'k'},
         {NULL, 0,                      NULL, 0}
 };
@@ -442,6 +443,7 @@ int main(int argc, char *argv[]) {
     char cbuf[RES_BUF_SIZE];
     unsigned char lefttype;             /* (0) passive left, else (1) active       */
     unsigned char righttype;            /* (0) passive right, else (1) active      */    
+    unsigned char setup = 0;
 
     /***************************************************/
     /* Control flow variables                          */
@@ -454,11 +456,12 @@ int main(int argc, char *argv[]) {
     /***************************************************/
     /* Remote and host information variables           */
     /***************************************************/
-    struct addrinfo hints, *infoptr; /* used for getting connecting right piggy if give DNS*/
-    struct addrinfo *p;
-    struct in_addr ip;
+    struct addrinfo hints, hints2, *infoptr, *infoptr2; /* used for getting connecting right piggy if give DNS*/
+    struct addrinfo *p, *p2;
+    struct in_addr ip, ip2;
     struct hostent *lhost;
     char hostinfo[256];
+    char hostinfo2[256];
     char hostname[256];
 
 
@@ -576,8 +579,7 @@ int main(int argc, char *argv[]) {
     /*********************************/
     /*  Parsing argv[]               */
     /*********************************/
-
-
+    
     while ((ch = getopt_long_only(argc, argv, "a::l::r::d::e::f::g::h::i::t::k:z:", long_options, &indexptr)) != -1) {
         switch (ch) {
             case 'a':
@@ -622,16 +624,17 @@ int main(int argc, char *argv[]) {
             case 'l':
                 openld = 0;
                 flags->noleft = 1;
-                winwrite((sw[CMW], "no left");
+                flags->setupr += 10;
+                winwrite(CMW, "no left");
                                     
                 break;
 
             case 'r':
                 openrd = 0;
                 flags->noright = 2;
+                flags->setupl += 10;
+                winwrite(CMW, "no right ");
                 
-                waddstr(sw[4], "no right ");
-                update_win(4);
                 break;
             case 'd':
                 flags->dsplr = 2;
@@ -640,34 +643,32 @@ int main(int argc, char *argv[]) {
 
             case 'e':
                 flags->dsprl = 1;
-                waddstr(sw[4], "dsprl ");
-                update_win(4);
+                winwrite(CMW,  "dsprl ");
                 break;
 
             case 'f':
                 flags->loopr = 1;
-                flags->output = 1;
-                waddstr(sw[4], "loopr ");
-                update_win(4);
+                flags->output = 1;                
+                winwrite(CMW, "loopr ");                
                 break;
 
             case 'g':
                 flags->loopl = 1;
                 flags->output = 0;
-                waddstr(sw[4], "loopl ");
-                update_win(4);
+                winwrite(CMW,  "loopl ");                
                 break;
 
             case 'i':
                 flags->persl = 1;
-                waddstr(sw[4], "persl ");
-                update_win(4);
+                winwrite(CMW, "persl ");                
                 break;
 
             case 'h':
                 flags->persr = 1;
-                waddstr(sw[4], "persr ");
-                update_win(4);
+                winwrite(CMW,  "persr ");
+                break;
+            
+            /*llport*/
             case 't':
                 if (number(argv[optind]) > 0) {
                     flags->llport = atoi(argv[optind]);
@@ -683,6 +684,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
+            /*rrport*/
             case 'k':
                 if (number(argv[optind - 1]) > 0) {
                     flags->rrport = atoi(argv[optind]);
@@ -714,10 +716,30 @@ int main(int argc, char *argv[]) {
                     getnameinfo(p->ai_addr, p->ai_addrlen, hostinfo, sizeof(hostinfo), NULL, 0, NI_NUMERICHOST);
                     strcpy(flags->rraddr, hostinfo);
                 }
-
+                flags->setupr +=20;
                 freeaddrinfo(infoptr);
                 break;
+                
+            case 'b':
+                
+                strncpy(flags->lraddr, argv[optind - 1], sizeof(flags->lraddr));
+                hints2.ai_family = AF_INET;
+                n = getaddrinfo(flags->lraddr, NULL, NULL, &infoptr2);
 
+                if (n != 0) {
+                    nerror(" rraddr error");
+                    GUIshutdown(response);
+                    return -1;
+                }
+
+                for (p2 = infoptr; p2 != NULL; p2 = p2->ai_next) {
+                    getnameinfo(p2->ai_addr, p2->ai_addrlen, hostinfo2, sizeof(hostinfo2), NULL, 0, NI_NUMERICHOST);
+                    strcpy(flags->lraddr, hostinfo2);
+                }
+                
+                flags->setupl +=20;
+                freeaddrinfo(infoptr2);
+                break;
             case '?':
                 nerror("No valid command");
                 GUIshutdown(response);
@@ -725,60 +747,6 @@ int main(int argc, char *argv[]) {
         }
     }
     /* end switch statement */
-
-
-    /**************************************************/
-    /*  Adjusting program variables and correct flags */
-    /**************************************************/
-
-    /* If head piggy selected, it requires a right address*/
-    if (flags->noleft && (flags->rraddr[0] == '0')) {
-        nerror("Head piggy requires a right address...\n");
-        GUIshutdown(response);
-        return -1;
-    }
-
-    /* Checking for minimum program requirements*/
-    flags->position = flags->noleft + flags->noright;
-    if (flags->position == 3) {
-        //printf("Piggy requires at least one connection...\n");
-        nerror("Piggy requires at least one connection...\n");
-        GUIshutdown(response);
-        return -1;
-    }
-
-    /* Checking if display flags are appropiately set*/
-    n = flags->dsplr + flags->dsprl;
-    if (n == 3) {
-        nerror("dsplr and dsprl cannot both be set...");
-        GUIshutdown(response);
-        return -1;
-    }
-
-
-    /* Head piggy, exit if dsplr and noleft*/
-    if(flags->noleft && flags->dsplr == 2){
-        nerror("dsplr and noleft cannot both be set...");
-        GUIshutdown(response);
-        return -1;
-    }
-
-
-    /* Tail piggy, exit if dsprl and noright*/
-    if(flags->noright && flags->dsprl){
-        nerror("dsprl and noright cannot both be set...");
-        GUIshutdown(response);
-        return -1;
-    }
-
-
-    /* A position < 1 implies that the currect piggy is at least*/
-    /*  a middle piggy                                          */
-    if ((flags->position < 1) & (flags->rraddr[0] == '\0')) {
-        nerror("Piggy right connection requires right address or DNS...\n");
-        GUIshutdown(response);
-        return -1;
-    }    
 
 
 
@@ -805,49 +773,81 @@ int main(int argc, char *argv[]) {
 
 
     /*********************************/
-    /*  Piggy setup                  */
+    /*  Left descriptors setup */
     /*********************************/
-    /* pigspo*/
-    switch (flags->position) {
-
-        /*
-         * Middle piggy
-         */
+    
+    switch (flags->setupl) {
         case 0:
+            openld = 0;
+            break;
+        /* Passive Left */
+        case (10):
+            pigopt = 1;
+            parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);
 
+            if (parentld < 0) {
+                nerror("left passive socket_init");
+                GUIshutdown(response);
+                exit(1);
+            }
+            
+            openld = 1;            
+            lefttype = 0;            
+            FD_SET(parentld, &masterset);
 
+            break;
+            
+        /* Active Left */
+        case (30):
+            
             pigopt = 2;
-            parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
+            parentld = sock_init(pigopt, 0, flags->lrport, flags->lraddr, left, host);
             if (parentrd < 0) {
                 nerror("socket_init");
                 GUIshutdown(response);
                 exit(1);
             }
+            openld = 1;
+            lefttype  = 1;
+            FD_SET(parentld, &masterset);
+            
+            break;
 
+        
+        default:        
+            winwrite(ERW, "Invalid options for left descriptor");
+            endwin();
+            return -1;
+    }
+    /* End Left descriptor setup */
+    
+    
+    /*********************************/
+    /*  Right descriptors setup      */
+    /*********************************/    
+    switch (flags->setupr) {
+        
+        case 0:
+            openrd = 0;
+        /* Passive Right */
+        case (10):
             pigopt = 1;
-            parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);
+            parentld = sock_init(pigopt, QLEN, flags->rrport, NULL, right, NULL);
+
             if (parentld < 0) {
-                nerror("socket_init");
+                nerror("left passive socket_init");
                 GUIshutdown(response);
                 exit(1);
             }
-
-            lefttype  = 0;
-            righttype = 1;
-            openrd   = 1;
-            openld   = 1;
-            FD_SET(parentld, &masterset);
+            
+            openrd = 1;
+            righttype = 0;
             FD_SET(parentrd, &masterset);
-
-
             break;
-
-            /*
-            * Head piggy
-            */
-        case 1:
-
-
+            
+        /* Active Right */
+        case (30):
+            
             pigopt = 2;
             parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
 
@@ -858,36 +858,20 @@ int main(int argc, char *argv[]) {
             }
 
             openrd = 1;
-            openld = 0;
-            lefttype = NULLCONNECTION;
             righttype = 1;
             FD_SET(parentrd, &masterset);
+            
             break;
 
-            /*
-            * Tail Piggy
-            */
-        default:
-
-
-            pigopt = 1;
-            parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);
-
-            if (parentld < 0) {
-                nerror("socket_init");
-                GUIshutdown(response);
-                exit(1);
-            }
-
-            flags->output = 0;
-            openld = 1;
-            openrd = 0;
-            lefttype = 0;
-            righttype = NULLCONNECTION;
-            FD_SET(parentld, &masterset);
-    }
-    /*end switch */
-
+        
+        default:                   
+            winwrite(ERW, "Invalid options for right descriptor");
+            endwin();
+            return -1;            
+    }    
+    /* End Right descriptor setup */    
+    
+    
     /***************************************************/
     /* Init windows cursor postion                     */
     /***************************************************/
@@ -929,8 +913,7 @@ int main(int argc, char *argv[]) {
             nerror("select error == 0");
         }
 
-        
-        
+                
         /*****************************************************************/
         /* Standard in descriptor ready (@tag:  0FD)                     */
         /*****************************************************************/
@@ -942,9 +925,6 @@ int main(int argc, char *argv[]) {
         *
         * 
         */
-
-
-
         if (FD_ISSET(0, &readset)) {
             win_clear(INW);
             bzero(buf, sizeof(buf));
@@ -1037,7 +1017,7 @@ int main(int argc, char *argv[]) {
                                     }
                                     if ( n == 0){
                                         openld = 0;
-                                        if( flags->persl){
+                                        if( lefttype & flags->persl){
                                             /**WARNING: PSEUDOCODE**/
                                             //SET FLAGS->RECONL IFF LEFT IS ACTIVE
                                             //ELSE GIVE WARNING MESSAGE, CLEAR RECONL FLAG FOR LEFT
@@ -1285,7 +1265,6 @@ int main(int argc, char *argv[]) {
                                     if (n < 0) {
                                         continue;
                                     }
-//                                    FD_CLR(desc, &masterset);
                                 }
                                 bzero(buf, sizeof(buf));
                                 break;
@@ -1480,26 +1459,47 @@ int main(int argc, char *argv[]) {
 
         /*
         *Notes:
-        *  -Try right reconnection if unsuccessful
-        *  -persr is only ever set to 2 when a reconnect
-        *      fails after calling flagsfunction
+        *
+        *
+        *
+        *        
         */
 
-        if (flags->persr == 2) {
+        if (flags->reconr) {
             winwrite(CMW, "right side reconnecting ");
 
             pigopt = 2;
             parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
 
             if (parentrd > 0) {
-                flags->persr = 1;
+                flags->reconr = 0;
                 openrd = 1;
-                maxfd = max(descl, parentld);
-                maxfd = max(maxfd, parentrd);
+                
+                maxfd = max(maxfd, parentld);                
+                maxfd = max(maxfd, descl);
+                
                 FD_SET(parentrd, &masterset);
             }
             reset_displays();
         }
+        
+        if (flags->reconl) {
+            winwrite(CMW, "left side reconnecting ");
+
+            pigopt = 2;
+            parentld = sock_init(pigopt, 0, flags->rlport, flags->lladdr, left, host);
+
+            if (parentrd > 0) {
+                flags->reconl = 0;
+                openld = 1;
+                                                
+                maxfd = max(maxfd, parentrd);                          
+                maxfd = max(maxfd, descr);
+                
+                FD_SET(parentld, &masterset);
+            }
+            reset_displays();
+        }        
     }
     /***************************************************/
     /**END SELECT LOOP                                **/
