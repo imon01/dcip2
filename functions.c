@@ -271,17 +271,6 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, unsigne
     }
 
     /* */
-    if (strncmp(command, "display", len) == 0) {
-        value = 1;
-        if(flags->dsprl){
-            winwrite(INW, "display right\n");
-        }
-        else{
-            winwrite(INW, "display left\n");
-        }
-    }
-
-    /* */
     if (strncmp(command, "persl", len) == 0) {
         value = 2;
         flags->persl = 1;
