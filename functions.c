@@ -592,6 +592,7 @@ void sockettype(char *buf, unsigned char *stype, unsigned char * openld, unsigne
         if(stype && flags->persr && (strcmp(sockid, RIGHT) == 0) ){
             flags->reconr = 1;
         }
+        FD_CLR(*local, masterset);
     }
         
     if(buf[0]== 13){

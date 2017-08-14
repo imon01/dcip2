@@ -624,15 +624,15 @@ int main(int argc, char *argv[]) {
             case 'l':
                 openld = 0;
                 flags->noleft = 1;
-                flags->setupr += 10;
+                flags->setupr = flags->setupr + 10;
                 winwrite(CMW, "no left");
                                     
                 break;
 
             case 'r':
                 openrd = 0;
-                flags->noright = 2;
-                flags->setupl += 10;
+                flags->noright = 1;
+                flags->setupl = flags->setupl + 10;
                 winwrite(CMW, "no right ");
                 
                 break;
@@ -716,7 +716,7 @@ int main(int argc, char *argv[]) {
                     getnameinfo(p->ai_addr, p->ai_addrlen, hostinfo, sizeof(hostinfo), NULL, 0, NI_NUMERICHOST);
                     strcpy(flags->rraddr, hostinfo);
                 }
-                flags->setupr +=20;
+                flags->setupr = flags->setupr +20;
                 freeaddrinfo(infoptr);
                 break;
                 
@@ -737,7 +737,7 @@ int main(int argc, char *argv[]) {
                     strcpy(flags->lraddr, hostinfo2);
                 }
                 
-                flags->setupl +=20;
+                flags->setupl = flags->setupl+ 20;
                 freeaddrinfo(infoptr2);
                 break;
             case '?':
@@ -816,7 +816,7 @@ int main(int argc, char *argv[]) {
         
         default:        
             winwrite(ERW, "Invalid options for left descriptor");
-            endwin();
+            GUIshutdown(response);            
             return -1;
     }
     /* End Left descriptor setup */
@@ -824,18 +824,21 @@ int main(int argc, char *argv[]) {
     
     /*********************************/
     /*  Right descriptors setup      */
-    /*********************************/    
+    /*********************************/   
+    
+    
     switch (flags->setupr) {
         
         case 0:
             openrd = 0;
+            break;
         /* Passive Right */
         case (10):
             pigopt = 1;
             parentld = sock_init(pigopt, QLEN, flags->rrport, NULL, right, NULL);
 
             if (parentld < 0) {
-                nerror("left passive socket_init");
+                nerror("Right passive socket_init");
                 GUIshutdown(response);
                 exit(1);
             }
@@ -865,8 +868,10 @@ int main(int argc, char *argv[]) {
 
         
         default:                   
-            winwrite(ERW, "Invalid options for right descriptor");
-            endwin();
+            wprintw(sw[ERW], "%d", flags->setupr);
+            update_win(ERW);
+           // winwrite(ERW, "Invalid options for right descriptor");
+            GUIshutdown(response);            
             return -1;            
     }    
     /* End Right descriptor setup */    
@@ -926,15 +931,13 @@ int main(int argc, char *argv[]) {
         * 
         */
         if (FD_ISSET(0, &readset)) {
-            win_clear(INW);
-            bzero(buf, sizeof(buf));
-
-            tempright = descr > 0 ? descr : parentrd; 
-            templeft  = descl > 0 ? descl : parentld;
             
             noecho();
+            win_clear(CMW);
             c = wgetch(sw[CMW]);
-            switch (c) {
+            bzero(buf, sizeof(buf));
+            
+            switch (c) {                
                 /*******************************/
                 /* Insert mode                 */
                 /*******************************/
@@ -946,6 +949,10 @@ int main(int argc, char *argv[]) {
                         winwrite(INW, "Insert: ");
                         echo();
 
+                        tempright = descr > 0 ? descr : parentrd; 
+                        templeft  = descl > 0 ? descl : parentld;
+                        
+                        
                         while (1) {
                             c = wgetch(sw[INW]);
 
@@ -975,18 +982,13 @@ int main(int argc, char *argv[]) {
                                     n = send(tempright, buf, sizeof(buf), 0);
 
 
-                                    if (n < 0) {
+                                    if (n <= 0) {
                                         openrd = 0;
                                         nerror("right send error");
-                                    }
-                                    if (n == 0) {
-                                        openrd = 0;
-                                        /* Here, if persr is set, we will attempt*/
-                                        /*  reestablish the connection           */
-                                        if(flags->persr){
-                                            flags->reconl = 1;
-                                        }
-                                        nerror("right send error, connection closed");
+                                        
+                                        if( righttype & flags->persr){
+                                            flags->reconr = 1;
+                                        }                                                                                                                
                                     }
 
                                     /*  */
@@ -1007,23 +1009,15 @@ int main(int argc, char *argv[]) {
                                 else if (!flags->output && openld) {
                                     n = send(templeft, buf, sizeof(buf), 0);
 
-                                    if (n < 0) {
+                                    if (n <= 0) {
                                         openld = 0;
                                         nerror("left send error ");
-                                    }
-
-                                    if (n == 0 && flags->persl) {
-                                        //some state??
-                                    }
-                                    if ( n == 0){
-                                        openld = 0;
+                                        
                                         if( lefttype & flags->persl){
-                                            /**WARNING: PSEUDOCODE**/
-                                            //SET FLAGS->RECONL IFF LEFT IS ACTIVE
-                                            //ELSE GIVE WARNING MESSAGE, CLEAR RECONL FLAG FOR LEFT
-
+                                            flags->reconl = 1;
                                         }
                                     }
+                                    
                                     /*  */
                                     if(c == 13){
                                         ybl++;
@@ -1036,24 +1030,9 @@ int main(int argc, char *argv[]) {
                                     }
                                     wprintw(sw[BLW], buf);
                                     update_win(BLW);
-                                }
-                                else {
-                                    if (!openld & !flags->output) {
-                                        nerror("left connection closed ");
-                                        /* usleep used for debugging*/
-                                        usleep(5000);
-                                        wgetstr(sw[INW], response);
-                                    }
-                                    if (!openrd & flags->output == 1) {
-                                        nerror("right connection closed ");
-
-                                        /* usleep used for debugging*/
-                                        usleep(5000);
-                                        wgetstr(sw[INW], response);
-                                    }
-                                }
+                                }                                
                             }
-                                /* ESCAPE key has been hit*/
+                            /* ESCAPE key has been hit*/
                             else {
                                 /**WE COULD reset the local windows to starting state**/
                                 /**Display window modes**/
@@ -1063,8 +1042,7 @@ int main(int argc, char *argv[]) {
                         }/* End input loop*/
                     }/* End of at least one socket is open*/
                     else {
-                        nerror("no open sockets");
-                        wgetstr(sw[INW], response);
+                        nerror("no open sockets");                        
                     }
                     break;
 
@@ -1148,11 +1126,6 @@ int main(int argc, char *argv[]) {
                     /* two word commands */
                     char *commandWord1 = twoWordCommand(cbuf, flags);
 
-
-                    /* file commands
-                    int readCommandLines = fileCommand(cbuf);
-*/
-
                     inputLength = strlen(cbuf);
                     inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
                     checker = strstr(cbuf, "source");
@@ -1200,87 +1173,71 @@ int main(int argc, char *argv[]) {
                             case 1:
                                 break;
 
-                                /*
-                                *  persl
-                                */
+                            /*
+                            *  persl
+                            */
                             case 2:
-                                if (flags->position != 1) {
-                                    bzero(buf, sizeof(buf));
-                                    strcpy(buf, PERSL);
-                                    n = send(descl, buf, sizeof(buf), 0);
-
-                                    if (n < 0) {
-                                        openld = 0;
-                                    } else {
-                                        FD_SET(descl, &masterset);
-                                        nerror("connection established");
-                                        openld = 1;
-                                    }
+                                if(lefttype){
+                                    flags->persl = 1;
+                                }else{
+                                    nerror("Can't set passive left persl");
                                 }
-                                bzero(buf, sizeof(buf));
+                                bzero(cbuf, sizeof(cbuf));
                                 break;
 
-                                /*
-                                *  persr, make reconnection if necessary
-                                */
+                            /*
+                            *  persr
+                            */
                             case 3:
-                                if (flags->position < 2 && !FD_ISSET(parentrd, &masterset)) {
-
-                                    winwrite(CMW, "right side reconnecting");
-                                    pigopt = 2;
-                                    parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
-
-                                    if (parentrd > 0) {
-
-                                        winwrite(CMW, "connection established");
-                                        openrd = 1;
-                                        openld = 0;
-                                        maxfd = max(descl, parentld);
-                                        maxfd = max(maxfd, parentrd);
-                                        FD_SET(parentrd, &masterset);
-                                    } else {
-                                        flags->persr = 2;
-                                    }
+                                if(righttype){
+                                    flags->persr = 1;                                
+                                }
+                                else{
+                                    nerror("Can't set passive right persr");
                                 }
                                 break;
 
-                                /*
-                                *  dropl
-                                */
+                            /*
+                            *  dropl
+                            */
                             case 4:
-
-                                /*
-                                * Notes:
-                                *   -valid of piggies with postion 0 & 2
-                                *   -Openld closed
-                                *   -dropl behavior: message sent to connecting piggy
-                                *   -clear output left
-                                */
-                                if (descl > 0) {
-                                    bzero(buf, sizeof(buf));
-                                    strcpy(buf, DROPL);
-
-                                    n = send(descl, buf, sizeof(buf), 0);
+                                
+                                
+                                if (parentld > 0) {
                                     openld = 0;
-                                    if (n < 0) {
-                                        continue;
-                                    }
+                                    shutdown(parentld, 2);
+                                    FD_CLR(parentld, &masterset);
+                                }else if( descl > 0){
+                                    openld = 0;
+                                    shutdown(descl, 2);
+                                    FD_CLR(descl, &masterset);                                    
+                                }else{
+                                    nerror("Invalid left side command ");
                                 }
-                                bzero(buf, sizeof(buf));
+                                
                                 break;
 
-                                /*
-                                *  dropr
-                                */
+                            /*
+                            *  dropr
+                            */
                             case 5:
-                                /* parentrd socket already closed in flagsfunction*/
+                                
                                 if (parentrd > 0) {
+                                    openrd = 0;
+                                    shutdown(parentrd, 2);
                                     FD_CLR(parentrd, &masterset);
+                                }else if( descr > 0){
+                                    openrd = 0;
+                                    shutdown(descr, 2);
+                                    FD_CLR(descr, &masterset);                                    
+                                }else{
+                                    nerror("Invalid right side command");
                                 }
                                 break;
 
                             default:
                                 nerror("invalid command");
+                                wgetstr(sw[CMW], response);
 
                         }/* End switch case*/
 
@@ -1523,8 +1480,7 @@ int main(int argc, char *argv[]) {
     if( parentrd> 0){
         shutdown(parentrd, 2);
     }
-
-    return 0;
-
-
+    
+    GUIshutdown(response);
+    return 0;    
 }/*end main*/
